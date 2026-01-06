@@ -119,6 +119,8 @@ All arguable points must be raised in CONSTRUCTIVE (iter 1-2). DEVELOPMENT and C
 
 EFFORT: `high` (default) or `xhigh` (reserve for high-stakes + ≥3 interacting factors + previous `high` failed).
 
+**Timeout:** Bash default (3 min) truncates output. `high`: `timeout: 600000`. `xhigh`: `run_in_background: true`, poll `TaskOutput` until complete. State file enables resume if interrupted.
+
 ## Session Recovery
 
 If resume fails (error, timeout, `Thread not found`, or context appears degraded), recover using the state file:
