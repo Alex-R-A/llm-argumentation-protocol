@@ -26,16 +26,22 @@ run_or_die() {
     printf '%s' "$out"
 }
 
+# Extract last agent_message from JSON output
+extract_response() {
+    jq -rs '[.[] | select(.type=="item.completed" and .item.type=="agent_message")] | last | .item.text // empty'
+}
+
 codex_new() {
     local prompt=$1 effort=${2:-high}
     local out session_id response
 
-    out=$(run_or_die "codex" codex e --json --full-auto -m "$MODEL" -c "model_reasoning_effort=\"$effort\"" "$prompt")
+    out=$(run_or_die "codex" codex e --json --full-auto --skip-git-repo-check -m "$MODEL" -c "model_reasoning_effort=\"$effort\"" "$prompt")
 
-    session_id=$(jq -r 'select(.type=="thread.started")|.thread_id // empty' <<<"$out" | head -n1)
+    session_id=$(jq -rs '[.[] | select(.type=="thread.started")] | first | .thread_id // empty' <<<"$out")
     [[ -n $session_id ]] || die "no session_id in output"
 
-    response=$(jq -rs '[.[] | select(.type=="item.completed")] | last | .item.text // empty' <<<"$out")
+    response=$(extract_response <<<"$out")
+    [[ -n $response ]] || die "no agent_message in output"
 
     echo "$session_id"
     echo "$response"
@@ -43,11 +49,14 @@ codex_new() {
 
 codex_resume() {
     local session_id=$1 prompt=$2 effort=${3:-high}
-    local out
+    local out response
 
-    out=$(run_or_die "codex resume" codex e resume "$session_id" -c "model_reasoning_effort=\"$effort\"" "$prompt")
+    out=$(run_or_die "codex resume" codex e resume "$session_id" --json --skip-git-repo-check -c "model_reasoning_effort=\"$effort\"" "$prompt")
 
-    awk 'f{print} /^tokens used$/{f=1;getline}' <<<"$out"
+    response=$(extract_response <<<"$out")
+    [[ -n $response ]] || die "no agent_message in output"
+
+    echo "$response"
 }
 
 case "${1:-}" in
