@@ -119,7 +119,7 @@ All arguable points must be raised in CONSTRUCTIVE (iter 1-2). DEVELOPMENT and C
 
 EFFORT: `high` (default) or `xhigh` (reserve for high-stakes + ≥3 interacting factors + previous `high` failed).
 
-**Timeout:** Bash default (3 min) truncates output. `high`: `timeout: 600000`. `xhigh`: `run_in_background: true`, poll `TaskOutput` until complete. State file enables resume if interrupted.
+**Execution:** Always run Codex wrapper with `run_in_background: true`, then poll `TaskOutput` until complete. Timeouts are unreliable because Codex processing time varies unpredictably with task complexity. State file enables resume if interrupted.
 
 ## Session Recovery
 
