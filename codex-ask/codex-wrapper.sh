@@ -12,8 +12,6 @@
 
 set -euo pipefail
 
-command -v jq >/dev/null || { echo "ERROR: 'jq' not found. Install jq (JSON processor): brew install jq / apt install jq" >&2; exit 1; }
-
 MODEL="gpt-5.2"
 
 die() { echo "ERROR: $*" >&2; exit 1; }
@@ -26,22 +24,35 @@ run_or_die() {
     printf '%s' "$out"
 }
 
-# Extract last agent_message from JSON output
+# Extract session id from plain text header (line: "session id: UUID")
+extract_session_id() {
+    sed -n 's/^session id: //p'
+}
+
+# Extract response from plain text output (between "codex" and "tokens used" lines)
 extract_response() {
-    jq -rs '[.[] | select(.type=="item.completed" and .item.type=="agent_message")] | last | .item.text // empty'
+    awk '/^codex$/{found=1; next} /^tokens used$/{found=0} found{print}'
 }
 
 codex_new() {
     local prompt=$1 effort=${2:-high}
     local out session_id response
 
-    out=$(run_or_die "codex" codex e --json --full-auto --skip-git-repo-check -m "$MODEL" -c "model_reasoning_effort=\"$effort\"" "$prompt")
+    out=$(run_or_die "codex" codex e \
+        --sandbox read-only \
+        --skip-git-repo-check \
+        -c "model=\"$MODEL\"" \
+        -c "model_reasoning_effort=\"$effort\"" \
+        -c 'model_reasoning_summary="none"' \
+        -c 'hide_agent_reasoning=true' \
+        -c 'model_verbosity="low"' \
+        - <<<"$prompt")
 
-    session_id=$(jq -rs '[.[] | select(.type=="thread.started")] | first | .thread_id // empty' <<<"$out")
+    session_id=$(extract_session_id <<<"$out")
     [[ -n $session_id ]] || die "no session_id in output"
 
     response=$(extract_response <<<"$out")
-    [[ -n $response ]] || die "no agent_message in output"
+    [[ -n $response ]] || die "no response in output"
 
     echo "$session_id"
     echo "$response"
@@ -51,12 +62,23 @@ codex_resume() {
     local session_id=$1 prompt=$2 effort=${3:-high}
     local out response
 
-    out=$(run_or_die "codex resume" codex e resume "$session_id" --json --skip-git-repo-check -c "model_reasoning_effort=\"$effort\"" "$prompt")
+    out=$(run_or_die "codex resume" codex e \
+        --sandbox read-only \
+        --skip-git-repo-check \
+        -c "model=\"$MODEL\"" \
+        -c "model_reasoning_effort=\"$effort\"" \
+        -c 'model_reasoning_summary="none"' \
+        -c 'hide_agent_reasoning=true' \
+        -c 'model_verbosity="low"' \
+        resume "$session_id" \
+        - <<<"$prompt")
 
     response=$(extract_response <<<"$out")
-    [[ -n $response ]] || die "no agent_message in output"
-
-    echo "$response"
+    if [[ -n $response ]]; then
+        echo "$response"
+    else
+        echo "$out"
+    fi
 }
 
 case "${1:-}" in
