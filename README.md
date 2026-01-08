@@ -191,9 +191,8 @@ Properties that hold throughout execution:
 | Dependency | Purpose |
 |------------|---------|
 | [Codex CLI](https://github.com/openai/codex) | Consultee agent invocation |
-| jq | JSON response parsing |
 
-Install jq: `brew install jq` (macOS) or `apt install jq` (Debian/Ubuntu).
+Codex CLI must be installed and authenticated.
 
 ## Usage
 
@@ -209,3 +208,75 @@ Implemented as a Claude Code skill. The orchestrating agent loads this specifica
 | Minimal | Disables arbitration and stress testing; retains phases, ledger, challenge tracking |
 | Quick | 2-iteration max, stateless, no challenge IDs; for simple binary decisions |
 
+### Deliberation Flows
+
+The first prompt's request to Codex is completely open. The orchestrator chooses the framing, which determines the deliberation flow:
+
+| Framing | Flow |
+|---------|------|
+| "How should we do X?" | Codex proposes → Orchestrator evaluates |
+| "Critique this design: [design]" | Orchestrator proposes → Codex evaluates |
+| "I think A, argue for B" | Devil's advocate / steelman |
+| "Here's partial solution, fill gaps" | Collaborative completion |
+| "Compare approaches A vs B vs C" | Joint comparative analysis |
+| "I've analyzed X, validate my reasoning" | Verification / sanity check |
+| "User wants X, I think Y, what's right?" | Orchestrator as participant with position |
+| "Here are 3 stakeholder views, synthesize" | Multi-perspective arbitration |
+| "Attack this design, I'll defend" | Red team exercise |
+| "Let's both propose solutions, then evaluate" | Parallel ideation → mutual critique |
+
+The protocol mechanics (phases, challenges, evidence gates) apply regardless of framing. The framing determines who proposes first and the adversarial stance, not the rigor of evaluation.
+
+## Known Issues
+
+### Codebase scanning overhead
+
+By default, Codex scans the current working directory for context. For abstract/theoretical questions unrelated to local code, this adds unnecessary overhead.
+
+**Solution:** Use `-C /tmp` flag to set workdir to an empty directory:
+
+```bash
+codex e --full-auto --skip-git-repo-check -C /tmp "Your abstract question"
+```
+
+**When to use:**
+- Abstract design questions ("Redis vs Memcached?")
+- Theoretical deliberations not referencing local files
+- General knowledge queries
+
+**When NOT to use:**
+- Questions about code in the current project
+- Deliberations requiring file access
+- Any prompt referencing local paths
+
+The wrapper does not use `-C /tmp` by default to preserve code access for code-related deliberations.
+
+### Response parsing
+
+The wrapper parses CLI stdout rather than using `--output-schema` for structured output. Rationale:
+
+- **Deterministic**: Session ID and response boundaries are CLI format, not LLM-generated
+- **Reliable**: Schema enforcement depends on LLM compliance. Under complex reasoning, models may break schema to explain themselves
+- **Simple**: No temp files, no jq dependency, just awk
+
+The CLI output structure (`session id: XXX` in header, response between `codex` and `tokens used` lines) is stable and machine-parseable.
+
+### Model selection
+
+The wrapper (`codex-wrapper.sh`) defaults to `gpt-5.2`. Users can change `MODEL="gpt-5.2"` to `MODEL="gpt-5.2-codex"` in the script.
+
+While `gpt-5.2-codex` is optimized for coding implementation tasks, testing indicates `gpt-5.2` performs better for reasoning and deliberation, which is the primary use case for this skill.
+
+### Resume command limitations
+
+`codex exec resume` does not support `--json` flag. The wrapper parses plain text output instead.
+
+**Flag ordering:** Flags like `--skip-git-repo-check` belong to `codex exec`, not the `resume` subcommand. Place them before `resume`:
+
+```bash
+# Correct - flags before subcommand
+codex e --skip-git-repo-check resume SESSION_ID "prompt"
+
+# Wrong - flags after subcommand
+codex e resume SESSION_ID --skip-git-repo-check "prompt"
+```
