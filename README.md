@@ -2,7 +2,7 @@
 
 A bounded multi-agent deliberation protocol implementing structured argumentation semantics for LLM-to-LLM consultation.
 
-**Primary implementation:** Claude Code (orchestrator) consulting Codex CLI (consultee). The protocol is LLM-agnostic and can be adapted to other agent pairings by swapping the wrapper script.
+**Primary implementation:** Claude Code (orchestrator) consulting Codex CLI (consultee). The protocol mechanics are LLM-agnostic; this implementation targets Codex CLI. Adapting to other consultees requires updating the wrapper and consultee-specific references (e.g., `codex-unverified` tag).
 
 ## Abstract
 
@@ -35,13 +35,14 @@ The protocol draws from several formal traditions:
 ### State Space
 
 ```
-S = (L, C, B, φ, n)
+S = (L, C, B, φ, n, M)
 
 L : Ledger       — Append-only fact base with provenance tags
 C : Challenges   — Map of attack relations {id → (claim, objection, status)}
 B : Buckets      — Partitioned acceptance states (Agreed | Dismissed | Unresolved)
 φ : Phase        — Current protocol phase ∈ {CONSTRUCTIVE, DEVELOPMENT, CRYSTALLIZATION}
 n : Iteration    — Current round ∈ [1, 8]
+M : SSM          — Solution Space Mapping (shape, tangents, drift signals)
 ```
 
 ### Ledger Provenance
@@ -73,11 +74,11 @@ Extension borrows from DEVELOPMENT budget; total cap remains 8.
 
 ### Workflow
 
-Execution proceeds through eight stages:
+Execution proceeds through eight stages (after invocation check gate):
 
 ```
-1. Ask        — Initial prompt with preamble, user question, ledger
-2. Triage     — Classify points: in-scope → Evaluate, out-of-scope → Dismissed
+1. Ask        — Solution Space Mapping, then initial prompt with preamble, user question, ledger
+2. Triage     — Tag points {in-scope | out-of-scope | anchor-shift-candidate}, then route
 3. Evaluate   — Assign: AGREE | SKEPTICAL | REJECT | ILL-FORMED
 4. Critique   — Issue challenges for SKEPTICAL/REJECT points
 5. Handle     — Route: revisions → Triage, defenses → evaluate quality
@@ -139,7 +140,7 @@ The protocol includes mechanisms against evaluation bias:
 1. Have I taken a position on this point before?
 2. Does current position contradict previous position?
 
-Contradiction without explicit acknowledgment ("Revising from X to Y because...") is prohibited. Unacknowledged drift triggers ledger entry with `revision` tag.
+Contradiction without explicit acknowledgment ("Revising from X to Y because...") is prohibited. Acknowledged revisions trigger ledger entry with `revision` tag; unacknowledged drift maintains original position.
 
 **Anti-sycophancy guard.** If consultee contradicts its earlier position without acknowledgment, challenge with citation: "Iteration 2 you claimed X, now you claim ¬X. Reconcile."
 
@@ -183,16 +184,17 @@ Properties that hold throughout execution:
 |---------|-------|-------|
 | Iterations | O(1) | Constant bound of 8 |
 | Challenges | O(k) per iteration | k = points under dispute |
-| State | O(\|L\| + \|C\|) | Ledger entries + challenge records |
+| State | O(\|L\| + \|C\| + \|M\|) | Ledger entries + challenge records + SSM |
 | Messages | 2n | Request/response pairs for n iterations |
 
 ## Dependencies
 
 | Dependency | Purpose |
 |------------|---------|
+| [Claude Code CLI](https://github.com/anthropics/claude-code) | Orchestrator agent (executes skill) |
 | [Codex CLI](https://github.com/openai/codex) | Consultee agent invocation |
 
-Codex CLI must be installed and authenticated.
+Both CLIs must be installed and authenticated.
 
 ## Usage
 
@@ -206,7 +208,7 @@ Implemented as a Claude Code skill. The orchestrating agent loads this specifica
 |------|----------|
 | Standard | Full protocol with state persistence to `~/.claude/codex-ask-state.json` |
 | Minimal | Disables arbitration and stress testing; retains phases, ledger, challenge tracking |
-| Quick | 2-iteration max, stateless, no challenge IDs; for simple binary decisions |
+| Quick | 2-iteration max, stateless, no SSM or challenge tracking; for simple binary decisions |
 
 ### Deliberation Flows
 
@@ -236,8 +238,10 @@ By default, Codex scans the current working directory for context. For abstract/
 **Solution:** Use `-C /tmp` flag to set workdir to an empty directory:
 
 ```bash
-codex e --full-auto --skip-git-repo-check -C /tmp "Your abstract question"
+codex e --sandbox read-only --skip-git-repo-check -C /tmp - <<< "Your abstract question"
 ```
+
+Note: Using stdin (`<<<`) avoids escaping issues with special characters in prompts.
 
 **When to use:**
 - Abstract design questions ("Redis vs Memcached?")
@@ -257,9 +261,9 @@ The wrapper parses CLI stdout rather than using `--output-schema` for structured
 
 - **Deterministic:** Session ID and response boundaries are CLI format, not LLM-generated
 - **Reliable:** Schema enforcement depends on LLM compliance. Under complex reasoning, models may break schema to explain themselves
-- **Simple:** No temp files, no jq dependency, just awk
+- **Simple:** No temp files, no jq dependency, just sed/awk
 
-The CLI output structure (`session id: XXX` in header, response between `codex` and `tokens used` lines) is stable and machine-parseable.
+The CLI output structure (`session id: XXX` in header, response between `codex` and `tokens used` lines) is machine-parseable.
 
 ### Model selection
 
@@ -267,16 +271,6 @@ The wrapper (`codex-wrapper.sh`) defaults to `gpt-5.2`. Users can change `MODEL=
 
 While `gpt-5.2-codex` is optimized for coding implementation tasks, testing indicates `gpt-5.2` performs better for reasoning and deliberation, which is the primary use case for this skill.
 
-### Resume command limitations
+### Session continuity
 
-`codex exec resume` does not support `--json` flag. The wrapper parses plain text output instead.
-
-**Flag ordering:** Flags like `--skip-git-repo-check` belong to `codex exec`, not the `resume` subcommand. Place them before `resume`:
-
-```bash
-# Correct - flags before subcommand
-codex e --skip-git-repo-check resume SESSION_ID "prompt"
-
-# Wrong - flags after subcommand
-codex e resume SESSION_ID --skip-git-repo-check "prompt"
-```
+The wrapper uses `new` to start a session and `resume` to continue it. This enables multi-turn deliberation with context preserved across iterations.
