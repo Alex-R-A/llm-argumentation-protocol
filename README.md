@@ -28,7 +28,7 @@ The protocol draws from several formal traditions:
 
 **Epistemic Constraints.** Empirical claims require verification against shared artifacts. The evidence hierarchy distinguishes execution traces (strongest), textual citations, and unverified assertions. Claims lacking grounding cannot achieve acceptance regardless of rhetorical force.
 
-**Phased Scope Restriction.** Content introduction is progressively restricted: CONSTRUCTIVE admits new arguments; DEVELOPMENT permits extensions, defenses, and rebuttals; CRYSTALLIZATION allows only defenses to open challenges. This staged restriction forces convergence by eliminating late-stage scope expansion.
+**Phased Scope Restriction.** Content introduction is progressively restricted: CONSTRUCTIVE admits new arguments; DEVELOPMENT permits extensions, defenses, and rebuttals; CRYSTALLIZATION allows defenses to open challenges and decisive evidence only. This staged restriction forces convergence by eliminating late-stage scope expansion.
 
 ## Protocol Specification
 
@@ -185,7 +185,7 @@ Properties that hold throughout execution:
 | Iterations | O(1) | Constant bound of 8 |
 | Challenges | O(k) per iteration | k = points under dispute |
 | State | O(\|L\| + \|C\| + \|M\|) | Ledger entries + challenge records + SSM |
-| Messages | 2n | Request/response pairs for n iterations |
+| Messages | ≥2n | Request/response pairs; retries on format failure add extra |
 
 ## Dependencies
 
@@ -248,12 +248,9 @@ Note: Using stdin (`<<<`) avoids escaping issues with special characters in prom
 - Theoretical deliberations not referencing local files
 - General knowledge queries
 
-**When NOT to use:**
-- Questions about code in the current project
-- Deliberations requiring file access
-- Any prompt referencing local paths
+**When NOT to use:** Deliberations where automatic codebase context scanning is valuable. File access via absolute paths still works regardless of `-C` flag.
 
-The wrapper does not use `-C /tmp` by default to preserve code access for code-related deliberations.
+The wrapper does not use `-C /tmp` by default to preserve automatic context scanning for code-related deliberations.
 
 ### Response parsing
 
