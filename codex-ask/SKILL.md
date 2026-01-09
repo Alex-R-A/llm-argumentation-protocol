@@ -117,13 +117,13 @@ All arguable points must be raised in CONSTRUCTIVE (iter 1-2). DEVELOPMENT and C
 - `new "PROMPT" [EFFORT]` → first line = session_id, rest = response
 - `resume SESSION_ID "PROMPT" [EFFORT]` → response only
 
-EFFORT: `high` (default) or `xhigh` (reserve for high-stakes + ≥3 interacting factors + previous `high` failed).
+EFFORT: `high` (default) or `xhigh`. Can be adjusted per-call. Use `xhigh` for: problems with non-obvious consequences, hidden structure requiring reasoning several steps ahead, when shallow analysis would miss critical factors, or when getting it wrong is costly.
 
 **Execution:** Always run Codex wrapper with `run_in_background: true`, then poll `TaskOutput` until complete. Timeouts are unreliable because Codex processing time varies unpredictably with task complexity. State file enables resume if interrupted.
 
 ## Session Recovery
 
-If resume fails (error, timeout, `Thread not found`, or context appears degraded), recover using the state file:
+If resume fails (error, timeout, `Thread not found`, session expiration, or context appears degraded), recover using the state file. Common failure indicators: `Thread not found`, `session expired`, `invalid session`, or wrapper returning `ERROR:` prefix.
 
 1. Read `~/.claude/codex-ask-state.json` for ground truth state
 2. Start fresh session (`new`) with state from file (not from memory)
@@ -263,7 +263,8 @@ State is externalized to file to prevent in-model drift. File is ground truth; i
 ```json
 {
   "version": 1,
-  "question_hash": "<first 8 chars of SHA-256 for identity check>",
+  "session_id": "<Codex session ID for resume>",
+  "question_hash": "<first 8 chars of SHA-256 of question text>",
   "question_excerpt": "<first 100 chars for human readability>",
   "updated_at": "<ISO timestamp>",
   "iteration": 3,
@@ -274,6 +275,11 @@ State is externalized to file to prevent in-model drift. File is ground truth; i
   },
   "ledger": ["F1 [user]: ...", "F2 [verified: ...]: ..."],
   "disputed": ["C2"],
+  "ssm": {
+    "shape": "<characteristics valid responses must have>",
+    "tangents": "<likely unproductive directions>",
+    "drift_signals": "<indicators deliberation left productive territory>"
+  },
   "buckets": {
     "agreed": [{"point": "...", "evidence_type": "execution|textual|n/a", "reason": "..."}],
     "dismissed": [{"point": "...", "tag": "REJECTED|CONCEDED|...", "reason": "..."}],
@@ -282,6 +288,8 @@ State is externalized to file to prevent in-model drift. File is ground truth; i
   "last_failure_type": "none"
 }
 ```
+
+**Hash computation:** `echo -n "question text" | shasum -a 256 | cut -c1-8` (or equivalent). The hash is for identity matching only; exact algorithm is not critical as long as consistent within session.
 
 **Protocol:**
 1. **Session start:** Check if file exists.
@@ -302,14 +310,33 @@ Default phase derivation: CONSTRUCTIVE (N≤2), DEVELOPMENT (3≤N≤5), CRYSTAL
 
 Output accumulates into three buckets: Agreed, Dismissed, Unresolved. Steps write to buckets. Synthesize reads them. ("Dismissed" = not accepted, for any reason: wrong, irrelevant, out-of-scope, conceded, or undefended. Tag indicates reason.)
 
+0. **Invocation Check** (mandatory gate, before any Codex calls)
+   Evaluate whether this skill should run:
+   - **Trigger source**: System message (e.g., "continue from where we left off") → EXIT
+   - **User intent**: No explicit request for Codex/deliberation/"/codex-ask" → EXIT
+   - **Question exists**: No substantive question requiring multi-iteration deliberation → EXIT
+
+   Exit format: "Skill not invoked: [reason]" — then stop, do not proceed to step 1.
+   Only proceed if: explicit user request AND substantive question present.
+
 1. **Ask** - First call format, N=1.
+
+   **Solution Space Mapping** (internalize before prompt construction):
+   Before engaging Codex, establish deliberation boundaries to detect drift:
+   - **Shape of valid responses:** What characteristics must useful answers have? What constraints does the anchor impose?
+   - **Likely tangents:** What adjacent-but-irrelevant directions might arise? What reframings sound appealing but shift the anchor?
+   - **Drift signals:** What would indicate the deliberation has left productive territory?
+
+   This creates awareness, not rigid exclusion. The map enables distinguishing "valuable unexpected insight" from "tangent" — without it, both feel equally novel and first-response framing tends to become the de facto anchor unless checked.
+
    Gate: verify prompt states system constraints per Prompt Construction.
    Scope check: identify up to 2 ambiguities (definitions, success criteria, boundaries). If none, state "No scope blockers."
    Decision criterion: if not implicit, add "what would change your conclusion?" Skip if obvious.
    Checklist: preamble, user_question verbatim, iteration counter, ledger verbatim, request declarative.
-2. **Triage** - Classify each point: in-scope or out-of-scope?
-   Out-of-scope → Dismissed bucket.
+2. **Triage** - First, tag each point {in-scope | out-of-scope | anchor-shift-candidate}. Then route:
    In-scope → canonicalize (deduplicate same-assertion points), then Evaluate.
+   Out-of-scope → Dismissed bucket.
+   Anchor-shift-candidate (not covered by the map but potentially valuable) → conscious evaluation: "Serves anchor better, or shifts it?" Serves → treat as in-scope. Shifts → route to Unresolved with status `pending-anchor-shift`; requires user consent per Rule 2.
    If >7 points remain, group by theme and ask user to prioritize.
 
 3. **Evaluate** - For each in-scope point: tentative classification → Bias & Humility checks → finalize.
@@ -337,6 +364,11 @@ Output accumulates into three buckets: Agreed, Dismissed, Unresolved. Steps writ
    Scope stable: (a) no new points last exchange, (b) disputed list unchanged.
 
 7. **Synthesize** - Verify every point in exactly one bucket and relates to original question. Present buckets + Not evaluated.
+
+   **Exit Validation (before any output):**
+   "Can I cite exact text from this skill permitting Synthesize under current state?"
+   YES → cite the text, proceed
+   NO  → return to appropriate workflow step, do not present output
 
    **Coverage Check (end of iter 2):**
    Ask "Are there other points not yet discussed?" before transitioning to DEVELOPMENT.
@@ -574,20 +606,10 @@ Malformed response: `Need structured response: AGREE/SKEPTICAL/REJECT/ILL-FORMED
 
 # Output Format
 
-Present to user after deliberation:
-```
-## Codex Consultation Summary
+At Synthesize, format output per `~/.claude/skills/codex-ask/OUTPUT-FORMAT.md`.
 
-**Question:** [question] | **Iterations:** [N] | **Ledger:** [F1, F2, ...]
-
-**Agreed:** [point] - [evidence type: execution|textual|n/a]
-**Dismissed:** [tag] [point] - [reason]
-**Unresolved:** [point] - crux: [what would resolve] - status: [blocked|tradeoff|definitional] - why stuck: [brief]
-**Surfaced questions:** [empirical blockers]
-**Not evaluated:** [late-surfaced points]
-```
-
-**Justification requirement:** Dismissed and Unresolved items must include substantive one-line reasons. Generic fills ("not accepted", "unclear") are insufficient. For Dismissed: state the specific flaw, evidence, or procedural reason (e.g., "out-of-scope: addresses deployment, not design", "undefended after reminder"). For Unresolved: state why resolution was blocked (e.g., "blocked on load data", "definitional: 'scalable' undefined").
+Sections: AGREED, DISMISSED, UNRESOLVED, SURFACED QUESTIONS, NOT EVALUATED.
+Each item requires substantive justification (no generic fills like "not accepted" or "unclear").
 
 # Minimal Mode
 
@@ -604,7 +626,7 @@ For simple binary decisions or fact-checks where user provided NO constraints. M
 Flow: Ask → Evaluate → Done. If unresolved after 2 iterations, state positions and let user decide.
 
 Quick Mode overrides:
-- Disable: Phases, Ledger, Challenge tracking, Coverage check, Stress test, Arbitration.
+- Disable: Phases, Ledger, Challenge tracking, Coverage check, Stress test, Arbitration, Solution Space Mapping.
 - Still required: DATA-vs-instructions rule, empirical evidence gate, final 3 buckets (Agreed/Dismissed/Unresolved).
 - Output: omit phase labels and challenge IDs; keep `evidence_type` schema for Agreed items.
 

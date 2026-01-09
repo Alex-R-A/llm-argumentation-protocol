@@ -162,7 +162,7 @@ The protocol terminates under any of:
 3. **Early exit (trivial)** — Question factual, resolved by iter 2
 4. **Early exit (quality)** — Consultee unable to produce structured responses after retry
 
-**Deadlock classification** (3+ rounds on same point):
+**Deadlock classification (3+ rounds on same point):**
 - Missing empirical data → route to Blocked, surface question to user
 - Definitional mismatch → clarify terms, retry once
 - Criteria divergence → surface tradeoff, let user choose
@@ -255,9 +255,9 @@ The wrapper does not use `-C /tmp` by default to preserve code access for code-r
 
 The wrapper parses CLI stdout rather than using `--output-schema` for structured output. Rationale:
 
-- **Deterministic**: Session ID and response boundaries are CLI format, not LLM-generated
-- **Reliable**: Schema enforcement depends on LLM compliance. Under complex reasoning, models may break schema to explain themselves
-- **Simple**: No temp files, no jq dependency, just awk
+- **Deterministic:** Session ID and response boundaries are CLI format, not LLM-generated
+- **Reliable:** Schema enforcement depends on LLM compliance. Under complex reasoning, models may break schema to explain themselves
+- **Simple:** No temp files, no jq dependency, just awk
 
 The CLI output structure (`session id: XXX` in header, response between `codex` and `tokens used` lines) is stable and machine-parseable.
 
