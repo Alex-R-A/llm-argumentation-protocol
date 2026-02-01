@@ -271,3 +271,7 @@ While `gpt-5.2-codex` is optimized for coding implementation tasks, testing indi
 ### Session continuity
 
 The wrapper uses `new` to start a session and `resume` to continue it. This enables multi-turn deliberation with context preserved across iterations.
+
+### Background task completion notifications
+
+After deliberation concludes and output is presented, background task completion events may appear in the terminal. These notifications are cosmetic artifacts of the async execution model and do not affect deliberation results. They can be safely ignored.
