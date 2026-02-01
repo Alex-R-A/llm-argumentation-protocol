@@ -1,39 +1,68 @@
 #!/bin/bash
 # Codex CLI wrapper for codex-ask skill
+#
+# Provides a simplified interface to Codex CLI for the deliberation protocol.
+# Handles session creation, resumption, and response extraction.
+#
 # Usage:
 #   codex-wrapper.sh new "prompt" [reasoning_effort]
 #   codex-wrapper.sh resume SESSION_ID "prompt" [reasoning_effort]
 #
-# Output:
-#   new: Two lines - session_id, then response
-#   resume: Response only
+# Arguments:
+#   new              Start a new Codex session
+#   resume           Continue an existing session
+#   prompt           The question or follow-up to send to Codex
+#   reasoning_effort Optional: "high" (default) or "xhigh" for complex tasks
 #
-# Model is hardcoded to gpt-5.2
+# Output:
+#   new:    Two lines - session_id on first line, response on subsequent lines
+#   resume: Response only (session_id already known)
+#
+# Exit codes:
+#   0  Success
+#   1  Error (message printed to stderr with "ERROR:" prefix)
+#
+# Dependencies:
+#   - codex CLI installed and authenticated
+#   - bash 3.0+ (uses here-strings)
+#
+# Compatibility:
+#   Linux and macOS (POSIX-compliant sed/awk, standard bash)
 
 set -euo pipefail
 
+# Model configuration - change here to use a different model
 MODEL="gpt-5.2"
 
+# Print error message to stderr and exit
 die() { echo "ERROR: $*" >&2; exit 1; }
 
+# Run a command, capture output, and die on failure
+# Args: label (for error context), command and args
 run_or_die() {
     local label=$1; shift
     local out
     out=$("$@" 2>&1) || die "$label: $out"
+    # Check for Codex error responses that don't set exit code
     [[ $out == Error:* ]] && die "$out"
     printf '%s' "$out"
 }
 
-# Extract session id from plain text header (line: "session id: UUID")
+# Extract session id from Codex CLI plain text header
+# Expects line format: "session id: <UUID>"
 extract_session_id() {
     sed -n 's/^session id: //p'
 }
 
-# Extract response from plain text output (between "codex" and "tokens used" lines)
+# Extract response body from Codex CLI output
+# Response is between "codex" marker and "tokens used" footer
 extract_response() {
     awk '/^codex$/{found=1; next} /^tokens used$/{found=0} found{print}'
 }
 
+# Start a new Codex session
+# Args: prompt, reasoning_effort (optional, defaults to "high")
+# Output: session_id on first line, response on subsequent lines
 codex_new() {
     local prompt=$1 effort=${2:-high}
     local out session_id response
@@ -58,6 +87,9 @@ codex_new() {
     echo "$response"
 }
 
+# Resume an existing Codex session
+# Args: session_id, prompt, reasoning_effort (optional, defaults to "high")
+# Output: response only
 codex_resume() {
     local session_id=$1 prompt=$2 effort=${3:-high}
     local out response
@@ -74,6 +106,7 @@ codex_resume() {
         - <<<"$prompt")
 
     response=$(extract_response <<<"$out")
+    # Fall back to raw output if extraction fails (e.g., error messages)
     if [[ -n $response ]]; then
         echo "$response"
     else
@@ -81,6 +114,7 @@ codex_resume() {
     fi
 }
 
+# Main dispatch
 case "${1:-}" in
     new)    shift; codex_new "$@" ;;
     resume) shift; codex_resume "$@" ;;
