@@ -121,11 +121,13 @@ EFFORT: `high` (default) or `xhigh`. Can be adjusted per-call. Use `xhigh` for: 
 
 **Execution:** Always run Codex wrapper with `run_in_background: true`, then poll `TaskOutput` until complete. Timeouts are unreliable because Codex processing time varies unpredictably with task complexity. State file enables resume if interrupted.
 
+**Stale notifications:** After polling completes, `<task-notification>` events may still arrive for the same task. These are redundant once results are retrieved via `TaskOutput`. Silently ignore them; do not acknowledge to the user.
+
 ## Session Recovery
 
 If resume fails (error, timeout, `Thread not found`, session expiration, or context appears degraded), recover using the state file. Common failure indicators: `Thread not found`, `session expired`, `invalid session`, or wrapper returning `ERROR:` prefix.
 
-1. Read `~/.claude/codex-ask-state.json` for ground truth state
+1. Read the state file from `~/.claude/deliberations/` for ground truth state (filename includes timestamp, e.g., `codex-ask-state-20260131-171500123.json`)
 2. Start fresh session (`new`) with state from file (not from memory)
 3. If file missing or corrupted (unparseable JSON, wrong version, or missing required schema keys), fall back to transcript-based reconstruction
 
@@ -208,6 +210,10 @@ Before sending the first prompt, ask: "If I received this prompt, what mode woul
 
 If the framing would invoke theoretical brainstorming in yourself, it will do the same in Codex. Reframe until the prompt would invoke rigorous, evidence-grounded analysis.
 
+**Neutral question framing:** Write fair, balanced questions that don't presuppose the answer. Avoid leading questions that bias Codex toward a conclusion you already hold. If you have a position, state it as a position to be challenged, not as context that frames the "correct" answer. The goal is genuine deliberation, not confirmation of existing beliefs.
+
+**Priority-based scoping:** Before asking, take a quick snapshot of the current state (goal, stage, constraints, what's decided vs open). List at least two candidate issues, then select from that list. State why your weakest pick beats your strongest reject. Keep the scope permeable: explicitly invite critiques of your framing/assumptions and any missing "big issue," even if it reframes the problem. Defer low-impact nits unless major decisions are settled. If you're unsure whether to scope at architecture vs implementation level, ask the critic to choose the level and justify. Soft cap: ~15-20 points, filled by impact not completeness.
+
 ## First Call Format
 ```
 [preamble]
@@ -257,15 +263,15 @@ Revise or defend. Reference challenge IDs when defending (e.g., "Re C1: ...").
 
 State is externalized to file to prevent in-model drift. File is ground truth; if in-model state differs, trust file.
 
-**File:** `~/.claude/codex-ask-state.json`
+**File:** `~/.claude/deliberations/codex-ask-state-{timestamp}.json` (e.g., `codex-ask-state-20260131-171500123.json`). Timestamp format: `YYYYMMDD-HHMMSSmmm` (milliseconds ensure uniqueness).
 
 **Schema:**
 ```json
 {
   "version": 1,
   "session_id": "<Codex session ID for resume>",
-  "question_hash": "<first 8 chars of SHA-256 of question text>",
   "question_excerpt": "<first 100 chars for human readability>",
+  "created_at": "<ISO timestamp matching filename>",
   "updated_at": "<ISO timestamp>",
   "iteration": 3,
   "phase": "DEVELOPMENT",
@@ -289,16 +295,14 @@ State is externalized to file to prevent in-model drift. File is ground truth; i
 }
 ```
 
-**Hash computation:** `echo -n "question text" | shasum -a 256 | cut -c1-8` (or equivalent). The hash is for identity matching only; exact algorithm is not critical as long as consistent within session.
+**Timestamp generation:** `date +%Y%m%d-%H%M%S%3N` (or equivalent). Milliseconds ensure uniqueness for rapid successive invocations.
 
 **Protocol:**
-1. **Session start:** Check if file exists.
-   - Exists + hash matches → offer to resume or start fresh; "start fresh" requires confirmation (discards prior state)
-   - Exists + hash differs → warn, confirm overwrite before proceeding
-   - Doesn't exist → create on first iteration
+1. **Session start:** Generate timestamp, create new state file `~/.claude/deliberations/codex-ask-state-{timestamp}.json`.
 2. **After each iteration:** Write current state before sending next prompt.
 3. **On recovery:** Read file as ground truth, verify against transcript if available.
 4. **Session end:** File persists for potential resume; delete explicitly if cleanup desired.
+5. **Parallel safety:** Timestamp-based filenames allow concurrent deliberations without conflict.
 
 **Count verification:** When stating counts, enumerate inline: "HIGH (I1, I2, I3 = 3)" not "HIGH (3)". Mismatch = error; re-enumerate before proceeding.
 
