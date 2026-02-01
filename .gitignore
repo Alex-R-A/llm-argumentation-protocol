@@ -1,4 +1,4 @@
 .DS_Store
 .serena
-copy.sh
+copy_codex.sh
 codex-ask/deliberations/*.json
