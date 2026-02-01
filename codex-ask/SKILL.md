@@ -127,7 +127,7 @@ EFFORT: `high` (default) or `xhigh`. Can be adjusted per-call. Use `xhigh` for: 
 
 If resume fails (error, timeout, `Thread not found`, session expiration, or context appears degraded), recover using the state file. Common failure indicators: `Thread not found`, `session expired`, `invalid session`, or wrapper returning `ERROR:` prefix.
 
-1. Read the state file from `~/.claude/deliberations/` for ground truth state (filename includes timestamp, e.g., `codex-ask-state-20260131-171500123.json`)
+1. Read the state file from `~/.claude/skills/codex-ask/deliberations/` for ground truth state (filename includes timestamp, e.g., `codex-ask-state-20260131-171500123.json`)
 2. Start fresh session (`new`) with state from file (not from memory)
 3. If file missing or corrupted (unparseable JSON, wrong version, or missing required schema keys), fall back to transcript-based reconstruction
 
@@ -263,7 +263,7 @@ Revise or defend. Reference challenge IDs when defending (e.g., "Re C1: ...").
 
 State is externalized to file to prevent in-model drift. File is ground truth; if in-model state differs, trust file.
 
-**File:** `~/.claude/deliberations/codex-ask-state-{timestamp}.json` (e.g., `codex-ask-state-20260131-171500123.json`). Timestamp format: `YYYYMMDD-HHMMSSmmm` (milliseconds ensure uniqueness).
+**File:** `~/.claude/skills/codex-ask/deliberations/codex-ask-state-{timestamp}.json` (e.g., `codex-ask-state-20260131-171500123.json`). Timestamp format: `YYYYMMDD-HHMMSSmmm` (milliseconds ensure uniqueness).
 
 **Schema:**
 ```json
@@ -298,7 +298,7 @@ State is externalized to file to prevent in-model drift. File is ground truth; i
 **Timestamp generation:** `date +%Y%m%d-%H%M%S%3N` (or equivalent). Milliseconds ensure uniqueness for rapid successive invocations.
 
 **Protocol:**
-1. **Session start:** Generate timestamp, create new state file `~/.claude/deliberations/codex-ask-state-{timestamp}.json`.
+1. **Session start:** Generate timestamp, create new state file `~/.claude/skills/codex-ask/deliberations/codex-ask-state-{timestamp}.json`.
 2. **After each iteration:** Write current state before sending next prompt.
 3. **On recovery:** Read file as ground truth, verify against transcript if available.
 4. **Session end:** File persists for potential resume; delete explicitly if cleanup desired.
