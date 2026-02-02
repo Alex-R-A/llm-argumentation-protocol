@@ -129,7 +129,7 @@ When something lands in Unresolved, that's valuable—it tells you exactly where
 
 ## Under the Hood
 
-*You don't need this to use the tool. This is for the curious.*
+*For the curious.*
 
 The protocol runs maximum 8 iterations across three phases: new arguments (1-2), defenses only (3-5), final verdicts (6-8). This forces convergence instead of endless back-and-forth.
 
