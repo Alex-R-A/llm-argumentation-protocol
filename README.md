@@ -270,3 +270,7 @@ Both wrappers support session continuity: `new` starts a session, `resume` conti
 ### Background task completion notifications
 
 After deliberation concludes and output is presented, background task completion events may appear in the terminal. These notifications are cosmetic artifacts of the async execution model and do not affect deliberation results. They can be safely ignored.
+
+## Further Reading
+
+For a deeper explanation of how the protocol works, including LLM-specific design considerations and the reasoning behind each mechanism, see [Protocol Explained for Humans](PROTOCOL-EXPLAINED-FOR-HUMANS.md).
