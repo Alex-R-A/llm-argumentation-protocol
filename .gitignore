@@ -1,4 +1,6 @@
 .DS_Store
 .serena
 copy_codex.sh
+gemini_copy.sh
 codex-ask/deliberations/*.json
+gemini-ask/deliberations/*.json
