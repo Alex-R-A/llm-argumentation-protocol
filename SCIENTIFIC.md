@@ -10,11 +10,11 @@ This protocol formalizes adversarial deliberation between a primary agent (orche
 
 Naive LLM consultation suffers from several failure modes:
 
-1. **Epistemic inflation** — LLM-to-LLM agreement is weak evidence due to correlated training data. Mutual reinforcement can amplify unfounded claims.
-2. **Authority confusion** — Treating consultee output as authoritative bypasses critical evaluation.
-3. **Scope creep** — Unbounded deliberation drifts from the original query.
-4. **Sycophantic collapse** — Under pushback, LLMs may capitulate rather than defend valid positions.
-5. **Silent position drift** — Context decay causes unacknowledged contradictions across iterations.
+1. **Epistemic inflation**: LLM-to-LLM agreement is weak evidence due to correlated training data. Mutual reinforcement can amplify unfounded claims.
+2. **Authority confusion**: Treating consultee output as authoritative bypasses critical evaluation.
+3. **Scope creep**: Unbounded deliberation drifts from the original query.
+4. **Sycophantic collapse**: Under pushback, LLMs may capitulate rather than defend valid positions.
+5. **Silent position drift**: Context decay causes unacknowledged contradictions across iterations.
 
 This protocol addresses each through explicit mechanisms: epistemic gates, anti-authority invariants, phase restrictions, defense obligations, and position stability checks.
 
@@ -33,14 +33,22 @@ The protocol draws from several formal traditions:
 ### State Space
 
 ```
-S = (L, C, B, φ, n)
+S = (L, C, B, φ, n, M)
 
-L : Ledger       — Append-only fact base with provenance tags
-C : Challenges   — Map of attack relations {id → (claim, objection, status)}
-B : Buckets      — Partitioned acceptance states (Agreed | Dismissed | Unresolved)
-φ : Phase        — Current protocol phase ∈ {CONSTRUCTIVE, DEVELOPMENT, CRYSTALLIZATION}
-n : Iteration    — Current round ∈ [1, 8]
+L : Ledger       : Append-only fact base with provenance tags
+C : Challenges   : Map of attack relations {id → (claim, objection, status)}
+B : Buckets      : Partitioned acceptance states (Agreed | Dismissed | Unresolved)
+φ : Phase        : Current protocol phase ∈ {CONSTRUCTIVE, DEVELOPMENT, CRYSTALLIZATION}
+n : Iteration    : Current round ∈ [1, 8]
+M : SSM          : Solution Space Map (shape, tangents, drift_signals)
 ```
+
+**Solution Space Mapping (M)** establishes deliberation boundaries before engagement:
+- **shape**: Characteristics valid responses must have
+- **tangents**: Likely unproductive directions to detect
+- **drift_signals**: Indicators deliberation has left productive territory
+
+This enables distinguishing valuable unexpected insights from scope drift.
 
 ### Ledger Provenance
 
@@ -74,17 +82,18 @@ Extension borrows from DEVELOPMENT budget; total cap remains 8.
 Execution proceeds through eight stages:
 
 ```
-1. Ask        — Initial prompt with preamble, user question, ledger
-2. Triage     — Classify points: in-scope → Evaluate, out-of-scope → Dismissed
-3. Evaluate   — Assign: AGREE | SKEPTICAL | REJECT | ILL-FORMED
-4. Critique   — Issue challenges for SKEPTICAL/REJECT points
-5. Handle     — Route: revisions → Triage, defenses → evaluate quality
-6. Iterate    — Check exit conditions; increment n if valid response
-7. Synthesize — Verify bucket coverage, present results
-8. Arbitrate  — (Optional) Secondary verification before output
+0. Invoke     : Gate check (explicit request, substantive question)
+1. Ask        : Initial prompt with preamble, user question, ledger
+2. Triage     : Classify points: in-scope → Evaluate, out-of-scope → Dismissed
+3. Evaluate   : Assign: AGREE | SKEPTICAL | REJECT | ILL-FORMED
+4. Critique   : Issue challenges for SKEPTICAL/REJECT points
+5. Handle     : Route: revisions → Triage, defenses → evaluate quality
+6. Iterate    : Check exit conditions; increment n if valid response
+7. Synthesize : Verify bucket coverage, present results
+8. Arbitrate  : (Optional) Secondary verification before output
 ```
 
-Stages 2-6 repeat until termination. Format failures do not increment n.
+Stage 0 is a pre-gate. Stages 2-6 repeat until termination. Format failures do not increment n.
 
 ### Classification Semantics
 
@@ -109,9 +118,9 @@ Stages 2-6 repeat until termination. Format failures do not increment n.
 
 Strict ordering for empirical claim verification:
 
-1. **Execution** — Runtime output, test results, compiler diagnostics (strongest)
-2. **Textual** — Verbatim citations with path:line reference
-3. **Claim** — Unverified assertion (insufficient for acceptance)
+1. **Execution**: Runtime output, test results, compiler diagnostics (strongest)
+2. **Textual**: Verbatim citations with path:line reference
+3. **Claim**: Unverified assertion (insufficient for acceptance)
 
 ### Attack/Defense Mechanics
 
@@ -155,10 +164,10 @@ Flags reduce confidence only. ≥50% flagged → present with warning or re-exam
 
 The protocol terminates under any of:
 
-1. **Convergence** — No open challenges ∧ scope stable (no new points, disputed list unchanged)
-2. **Iteration bound** — n = 8 reached
-3. **Early exit (trivial)** — Question factual, resolved by iter 2
-4. **Early exit (quality)** — Consultee unable to produce structured responses after retry
+1. **Convergence**: No open challenges ∧ scope stable (no new points, disputed list unchanged)
+2. **Iteration bound**: n = 8 reached
+3. **Early exit (trivial)**: Question factual, resolved by iter 2
+4. **Early exit (quality)**: Consultee unable to produce structured responses after retry
 
 **Deadlock classification** (3+ rounds on same point):
 - Missing empirical data → route to Blocked, surface question to user
@@ -169,11 +178,11 @@ The protocol terminates under any of:
 
 Properties that hold throughout execution:
 
-1. **Anti-authoritarianism** — Consultee output is never accepted without evaluation
-2. **Anchor preservation** — Original query remains primary until explicit user consent to reframe
-3. **Epistemic gate** — Empirical claims cannot achieve Agreed via unverified assertions
-4. **Defense obligation** — Challenged points must be defended by ID or are procedurally dismissed
-5. **Provenance integrity** — Ledger tags cannot be upgraded without verification
+1. **Anti-authoritarianism**: Consultee output is never accepted without evaluation
+2. **Anchor preservation**: Original query remains primary until explicit user consent to reframe
+3. **Epistemic gate**: Empirical claims cannot achieve Agreed via unverified assertions
+4. **Defense obligation**: Challenged points must be defended by ID or are procedurally dismissed
+5. **Provenance integrity**: Ledger tags cannot be upgraded without verification
 
 ## Complexity
 
@@ -181,12 +190,45 @@ Properties that hold throughout execution:
 |---------|-------|-------|
 | Iterations | O(1) | Constant bound of 8 |
 | Challenges | O(k) per iteration | k = points under dispute |
-| State | O(\|L\| + \|C\|) | Ledger entries + challenge records |
+| State | O(\|L\| + \|C\| + \|M\|) | Ledger + challenges + SSM |
 | Messages | 2n | Request/response pairs for n iterations |
 
 ## Implementation
 
 Primary implementation: Claude Code (orchestrator) consulting Codex CLI or Gemini CLI (consultee). The protocol is LLM-agnostic and can be adapted to other agent pairings.
+
+### State Persistence
+
+State is externalized to prevent in-model drift. File is ground truth.
+
+```json
+{
+  "version": 1,
+  "session_id": "<consultee session ID>",
+  "question_excerpt": "<first 100 chars>",
+  "created_at": "<ISO timestamp>",
+  "updated_at": "<ISO timestamp>",
+  "iteration": 3,
+  "phase": "DEVELOPMENT",
+  "challenges": {
+    "C1": {"point": "...", "objection": "...", "raised_iter": 1, "status": "defended"},
+    "C2": {"point": "...", "objection": "...", "raised_iter": 2, "status": "open"}
+  },
+  "ledger": ["F1 [user]: ...", "F2 [verified: ref]: ..."],
+  "disputed": ["C2"],
+  "ssm": {
+    "shape": "<valid response characteristics>",
+    "tangents": "<unproductive directions>",
+    "drift_signals": "<indicators of scope departure>"
+  },
+  "buckets": {
+    "agreed": [{"point": "...", "evidence_type": "execution|textual|n/a", "reason": "..."}],
+    "dismissed": [{"point": "...", "tag": "REJECTED|CONCEDED|UNDEFENDED", "reason": "..."}],
+    "unresolved": [{"point": "...", "crux": "...", "status": "blocked|tradeoff|definitional"}]
+  },
+  "last_failure_type": "none"
+}
+```
 
 **Modes:**
 
