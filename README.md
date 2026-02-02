@@ -8,7 +8,7 @@ You're three hours into building something. The LLM has been helpful. Now it's d
 
 These aren't trivial choices. Get it wrong now and you're paying for it later, refactoring code that grew around a bad foundation, or worse, living with it forever because fixing it isn't worth the pain.
 
-The LLM gives you an answer. Confidently. With bullet points and everything. And hey, it cost almost nothing and took one prompt to get here.
+The LLM gives you an answer. Confidently. With bullet points and everything. And hey, it costs almost nothing and takes one prompt to get here.
 
 But wait. How do you know this is the right call? You're not a database expert. You don't know event sourcing beyond a YouTube video you half-watched. The LLM sounds sure, but:
 
