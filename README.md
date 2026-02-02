@@ -94,7 +94,7 @@ what would change your conclusion?
 
 **You want to stress-test before committing:**
 ```
-attack this design, I'll defend
+find the strongest objections to this design and see if they hold up
 ```
 
 See [INSTRUCTIONS.md](INSTRUCTIONS.md) for more patterns.
