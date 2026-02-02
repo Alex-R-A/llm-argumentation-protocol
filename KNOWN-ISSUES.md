@@ -49,6 +49,9 @@
 - Notification system runs independently, doesn't know results were already consumed
 - Late notifications arrive after deliberation is done, sometimes after presenting to user
 
+**Why `run_in_background: true`:**
+Codex/Gemini response times are unpredictable: 1 second for simple questions, up to 20 minutes for complex code analysis requiring extensive scanning and reasoning. Standard bash timeout cannot accommodate this range. If timeout triggers mid-thinking, the LLM session is discarded and output is lost. Background execution with polling avoids this: the task runs without timeout pressure, and we poll until complete regardless of duration.
+
 **Symptoms:**
 - Random `<task-notification>` messages appear mid-conversation
 - Notifications reference tasks that are already complete
