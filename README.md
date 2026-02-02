@@ -92,6 +92,11 @@ come up with independent solution for [problem] and defend it
 what would change your conclusion?
 ```
 
+**You're leaning one way but want a devil's advocate:**
+```
+argue against [your preferred approach] - what am I missing?
+```
+
 **You want to stress-test before committing:**
 ```
 find the strongest objections to this design and see if they hold up
