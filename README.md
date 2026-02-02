@@ -212,7 +212,7 @@ Implemented as Claude Code skills. The orchestrating agent loads the skill speci
 
 | Mode | Behavior |
 |------|----------|
-| Standard | Full protocol with state persistence to `~/.claude/codex-ask-state.json` |
+| Standard | Full protocol with state persistence to `~/.claude/skills/<skill>/deliberations/` |
 | Minimal | Disables arbitration and stress testing; retains phases, ledger, challenge tracking |
 | Quick | 2-iteration max, stateless, no SSM or challenge tracking; for simple binary decisions |
 
