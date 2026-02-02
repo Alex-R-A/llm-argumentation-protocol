@@ -70,29 +70,6 @@ See [INSTRUCTIONS.md](INSTRUCTIONS.md) for more patterns.
 
 ---
 
-## What You Get
-
-Instead of "the LLM said so," you get receipts.
-
-```
-AGREE: Points 1, 3 (file citations verified)
-SKEPTICAL: Point 2 — claimed 10x speedup, no benchmark
-REJECT: Point 4 — contradicts your constraint
-UNRESOLVED: Point 5 — need load testing data to decide
-```
-
-Here's what each means for you:
-
-- **Agreed** — This survived scrutiny. You can act on it. There's evidence.
-- **Dismissed** — This was wrong, unsupported, or the other side conceded. Don't do it.
-- **Unresolved** — Nobody knows yet. You need more data, or it's genuinely your call.
-
-That last one matters. When something lands in Unresolved, that's not failure—that's the protocol being honest. It's telling you exactly where uncertainty lives and what data would resolve it. That's more valuable than false confidence.
-
-You walk away knowing what's solid, what's wrong, and what still needs work—without becoming an expert first.
-
----
-
 ## Try It
 
 **Prerequisites:**
@@ -113,6 +90,22 @@ follow all rules in codex-ask skill and critique my authentication flow in src/a
 ```
 
 Pick something you're actually uncertain about. You'll get a decision you can trust without being the expert.
+
+---
+
+## What It Feels Like
+
+You're building a dashboard for a client. The data model is getting complex—nested objects, relationships everywhere. Claude says "just use MongoDB, it's flexible." But you've been burned by "flexible" before. Three months in, queries get slow, you're denormalizing everything, and you're basically building a relational database by hand.
+
+So you ask:
+
+```
+follow all rules in codex-ask skill and evaluate if MongoDB is right for this dashboard with nested user permissions and audit logs
+```
+
+Two rounds later, you've got an answer: PostgreSQL with JSONB for the parts that actually need flexibility. The reasoning checked out. The tradeoffs made sense. There was evidence, not just vibes.
+
+You tell Claude to implement it that way. And when you're three months in and it's working exactly as expected, you're not wondering "what if." You made the call with receipts. Life's too short for architectural regrets.
 
 ---
 
