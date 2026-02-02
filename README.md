@@ -28,6 +28,8 @@ whether PostgreSQL or MongoDB is the right choice for this app, then defend it
 
 Now you've got two LLMs forced to argue, cite evidence, and defend their positions. Claims that can't survive scrutiny get dismissed. Disagreements get surfaced with "here's what data would resolve this." You're not trusting vibes anymore.
 
+After a few rounds of back-and-forth, they've either agreed by giving each other proof, or they've told you exactly what's still uncertain and why. Either way, you can stake that this is a better decision than you or one LLM could have made alone with all the info currently available.
+
 ---
 
 ## Who This Is For
