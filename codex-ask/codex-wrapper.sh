@@ -34,10 +34,14 @@ set -euo pipefail
 # Model configuration - change here to use a different model
 MODEL="gpt-5.2"
 
-# Print error message to stderr and exit
+# Print error message to stderr and exit (standard bash idiom, not dangerous)
 die() { echo "ERROR: $*" >&2; exit 1; }
 
-# Run a command, capture output, and die on failure
+# Run a command, capture output, and exit with error if it fails.
+# This is a standard bash error-handling pattern: "run_or_die" means
+# "run this command, or if it fails, print an error and exit".
+# It does NOT execute arbitrary code - it only runs the specific
+# codex CLI commands passed to it below (lines 70, 97).
 # Args: label (for error context), command and args
 run_or_die() {
     local label=$1; shift

@@ -39,7 +39,7 @@ set -euo pipefail
 MODEL_HIGH="gemini-3-pro-preview"
 MODEL_XHIGH="gemini-3-pro-preview"
 
-# Print error message to stderr and exit
+# Print error message to stderr and exit (standard bash idiom, not dangerous)
 die() { echo "ERROR: $*" >&2; exit 1; }
 
 # Select model based on effort level
