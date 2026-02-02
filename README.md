@@ -1,7 +1,7 @@
 # Phone-a-Friend
 ### Adversarial Peer Review for LLMs
 
-A second-opinion workflow that forces evidence-grounded disagreement resolution between LLMs.
+A second-opinion workflow that forces LLMs to argue, cite evidence, and defend their positions.
 
 ---
 
@@ -25,9 +25,7 @@ follow all rules in codex-ask skill and have codex independently evaluate
 whether PostgreSQL or MongoDB is the right choice for this app, then defend it
 ```
 
-Now you've got two LLMs forced to argue, cite evidence, and defend their positions. Claims that can't survive scrutiny get dismissed. Disagreements get surfaced with "here's what data would resolve this."
-
-After a few rounds, they've either agreed with proof, or told you exactly what's still uncertain and why. Either way, this is a better decision than one LLM could make alone.
+Now you've got two LLMs forced to argue, cite evidence, and defend their positions. Claims that can't survive scrutiny get dismissed. You're not trusting vibes anymore.
 
 **Use this if:** You prompt LLMs for decisions you can't fully verify yourself.
 
@@ -35,36 +33,28 @@ After a few rounds, they've either agreed with proof, or told you exactly what's
 
 ---
 
-## The Verdict
+## What You Get
 
-You don't get a chat transcript. You get a verdict rooted in evidence.
+Instead of "the LLM said so," you get receipts.
 
 ```
-Iteration 3/8. Phase: DEVELOPMENT
-
-Ledger:
-F1 [user]: writes must be idempotent
-F2 [verified: api.py:42]: rate limit = 100/s
-
-Open challenges:
-C1: "Redis caching helps" — No load data provided (iter 2)
-
-Evaluation:
 AGREE: Points 1, 3 (file citations verified)
 SKEPTICAL: Point 2 — claimed 10x speedup, no benchmark
-REJECT: Point 4 — contradicts F1 (user constraint)
+REJECT: Point 4 — contradicts your constraint
+UNRESOLVED: Point 5 — need load testing data to decide
 ```
 
-Results bucketed as:
-- **Agreed** — Survived challenges given available artifacts (not "truth", just defended)
-- **Dismissed** — Failed: wrong, unsupported, out-of-scope, or conceded
-- **Unresolved** — Blocked: missing data, definitional mismatch, or tradeoff requiring your call
+Here's what each means for you:
 
-Each item includes *why* it landed there and *what evidence would change the verdict*. Unresolved is a valid outcome when you genuinely lack information.
+- **Agreed** — This survived scrutiny. You can act on it. There's evidence.
+- **Dismissed** — This was wrong, unsupported, or the other side conceded. Don't do it.
+- **Unresolved** — Nobody knows yet. You need more data, or it's genuinely your call.
+
+That last one matters. When something lands in Unresolved, that's not failure—that's the protocol being honest. It's telling you exactly where uncertainty lives and what data would resolve it. That's more valuable than false confidence.
 
 ---
 
-## Quick Start
+## Try It
 
 **Prerequisites:**
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed
@@ -78,73 +68,71 @@ cp -r llm-argumentation-protocol/codex-ask ~/.claude/skills/
 cp -r llm-argumentation-protocol/gemini-ask ~/.claude/skills/
 ```
 
-**Run** (in Claude Code):
+**Ask your first question:**
 ```
 follow all rules in codex-ask skill and critique my authentication flow in src/auth/
 ```
 
-**Performance note:** Codex scans the working directory by default. For abstract questions unrelated to local code, use `-C /tmp` to skip: `codex e --sandbox read-only -C /tmp - <<< "Your question"`
+Pick something you're actually uncertain about. You'll see the difference.
 
 ---
 
-## How It Works
+## Situations You'll Recognize
 
-**Two agents:** Claude Code (orchestrator) evaluates; Codex or Gemini CLI (consultee) proposes and defends. Either can take either role—the orchestrator chooses the framing.
+**You've designed something and want to know if it's solid:**
+```
+validate my reasoning on [your design]
+```
 
-**Bounded deliberation:** Maximum 8 iterations across three phases:
-- **CONSTRUCTIVE (1-2):** New arguments allowed
-- **DEVELOPMENT (3-5):** Defenses and rebuttals only
-- **CRYSTALLIZATION (6-8):** Final verdicts, no new arguments
+**You're choosing between two approaches and can't decide:**
+```
+come up with independent solution for [problem] and defend it
+```
 
-**Why it converges:** The consultee can't "win" by confidence—claims must survive evaluation with evidence. Dropped challenges get reminders; undefended points get dismissed. No silent wins.
+**You got an answer but something feels off:**
+```
+what would change your conclusion?
+```
 
-**Evidence hierarchy:** Execution (tests, logs) > Textual (file:line citations) > Claim (insufficient for Agreed).
+**You want to stress-test before committing:**
+```
+attack this design, I'll defend
+```
 
-**Modes:** Standard (full tracking), Minimal (low-stakes, ≤5 points), Quick (2-round sanity check). Invoke by stating the mode: "Quick mode: is this approach sound?"
-
----
-
-## Recipes
-
-Copy-paste these when you have an answer and want to catch mistakes:
-
-| Recipe | When to use |
-|--------|-------------|
-| "validate my reasoning on X" | You have a design, want holes found |
-| "attack this design, I'll defend" | Red team your own proposal |
-| "what would change your conclusion?" | Find the crux of disagreement |
-| "come up with independent solution for X and defend it" | Get fresh perspective, stress-test it |
-
-See [INSTRUCTIONS.md](INSTRUCTIONS.md) for more prompt patterns.
+See [INSTRUCTIONS.md](INSTRUCTIONS.md) for more patterns.
 
 ---
 
-## The Catch: Agreement ≠ Truth
+## Why Trust This
 
-Two LLMs agreeing doesn't mean they're right. Three ways this fails:
+**"Isn't this just asking twice?"**
 
-**Correlated blind spots:** LLMs share training data. Two models confidently agreeing on something plausible-sounding doesn't make it true—they may share the same misconception.
+No. One LLM proposes, the other challenges. The consultee can't "win" by sounding confident—claims must survive evaluation with evidence. Dropped challenges get reminders. Undefended points get dismissed. It's adversarial by design.
 
-**Context decay:** As conversations grow, LLMs "forget" earlier constraints. This protocol fights drift by externalizing state to a ledger, but it's not magic.
+**"Can't they both be wrong?"**
 
-**Verification gap:** This protocol treats consultee output as *hypotheses* until grounded in artifacts. If you don't have tests or code to verify a claim, it remains a shared guess.
+Yes. LLMs share training data and blind spots. That's why agreement alone isn't enough—the protocol requires evidence. When you see something marked Agreed, check if it cites actual files, test results, or execution output. Receipts > reasoning > vibes.
 
-**So what is truth?** In this protocol, truth is grounded evidence: test results, file citations, execution output. The evidence hierarchy (Execution > Textual > Claim) exists precisely because LLM agreement is weak. When you see an Agreed item backed by `[verified: file:line]`, that's stronger than one backed by reasoning alone. When you see Unresolved, that's the protocol being honest about uncertainty—take it seriously. The skill doesn't give you truth; it gives you a structured way to find out what's actually supported and what's still a guess.
+**"How do I know when to trust the result?"**
+
+Look at what backs each point:
+- **Execution evidence** (test passed, code ran): Strong. Act on it.
+- **File citations** (specific line references): Good. Verify if high-stakes.
+- **Just reasoning**: Weaker. Treat as informed opinion, not fact.
+
+When something lands in Unresolved, that's valuable—it tells you exactly where to dig before committing.
 
 ---
 
-## For the Rigorous
+## Under the Hood
 
-The protocol implements bounded argumentation with formal acceptance semantics.
+*You don't need this to use the tool. This is for the curious.*
 
-**Invariants:**
-1. Anti-authoritarianism — Consultee output is never accepted without evaluation
-2. Anchor preservation — Original query stays primary until explicit user consent to reframe
-3. Epistemic gate — Empirical claims cannot achieve Agreed via unverified assertions
-4. Defense obligation — Challenged points must be defended by ID or are procedurally dismissed
-5. Provenance integrity — Ledger tags cannot be upgraded without verification
+The protocol runs maximum 8 iterations across three phases: new arguments (1-2), defenses only (3-5), final verdicts (6-8). This forces convergence instead of endless back-and-forth.
 
-**Provenance tags:** `[user]` (authoritative), `[verified: ref]` (confirmed against artifact), `[<consultee>-unverified]` (hypothesis), `[revision]` (position change).
+Five invariants always hold: consultee output is never accepted without evaluation, original query stays primary, empirical claims require evidence, challenged points must be defended or are dismissed, and evidence tags can't be upgraded without verification.
+
+Evidence hierarchy: Execution (tests, logs) > Textual (file:line citations) > Claim (insufficient for Agreed).
 
 For the full specification, see [PROTOCOL-EXPLAINED-FOR-HUMANS.md](PROTOCOL-EXPLAINED-FOR-HUMANS.md).
 
@@ -152,8 +140,6 @@ For the full specification, see [PROTOCOL-EXPLAINED-FOR-HUMANS.md](PROTOCOL-EXPL
 
 ## Security
 
-The skill uses shell wrappers (~120 lines each) rather than MCP servers. This is intentional: zero config, auditable, no server management.
+Shell wrappers (~120 lines each), not MCP servers. Zero config, fully auditable.
 
-The wrappers call only the target CLI commands. Review them if you're cautious: `codex-wrapper.sh`, `gemini-wrapper.sh`.
-
-See [DISCLOSURE-READ-FIRST.md](DISCLOSURE-READ-FIRST.md) for details.
+Review them if you're cautious: `codex-wrapper.sh`, `gemini-wrapper.sh`. See [DISCLOSURE-READ-FIRST.md](DISCLOSURE-READ-FIRST.md).
