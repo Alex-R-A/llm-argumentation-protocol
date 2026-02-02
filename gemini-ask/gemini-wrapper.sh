@@ -42,6 +42,18 @@ MODEL_XHIGH="gemini-3-pro-preview"
 # Print error message to stderr and exit (standard bash idiom, not dangerous)
 die() { echo "ERROR: $*" >&2; exit 1; }
 
+# Run gemini command with prompt, capture output, exit with error if it fails.
+# This is a standard bash error-handling pattern: "run_or_die" means
+# "run this command, or if it fails, print an error and exit".
+# It does NOT execute arbitrary code - it only runs the gemini CLI.
+# Args: label, prompt, additional gemini args...
+run_or_die() {
+    local label=$1 prompt=$2; shift 2
+    local out
+    out=$(echo "$prompt" | gemini "$@" 2>&1) || die "$label: $out"
+    printf '%s' "$out"
+}
+
 # Select model based on effort level
 get_model() {
     local effort=${1:-high}
@@ -67,7 +79,8 @@ gemini_new() {
 
     model=$(get_model "$effort")
 
-    raw_out=$(echo "$prompt" | gemini -o json -m "$model" 2>&1) || die "gemini: $raw_out"
+    # run_or_die: runs the gemini command, exits with error message if it fails
+    raw_out=$(run_or_die "gemini" "$prompt" -o json -m "$model")
 
     # Extract JSON portion (skip non-JSON prefix lines like "Loaded cached credentials")
     json_out=$(echo "$raw_out" | extract_json)
@@ -93,7 +106,8 @@ gemini_resume() {
 
     model=$(get_model "$effort")
 
-    raw_out=$(echo "$prompt" | gemini -o json -m "$model" -r "$session_id" 2>&1) || die "gemini resume: $raw_out"
+    # run_or_die: runs the gemini command, exits with error message if it fails
+    raw_out=$(run_or_die "gemini resume" "$prompt" -o json -m "$model" -r "$session_id")
 
     # Extract JSON portion
     json_out=$(echo "$raw_out" | extract_json)
