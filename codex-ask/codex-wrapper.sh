@@ -71,6 +71,7 @@ codex_new() {
     local prompt=$1 effort=${2:-high}
     local out session_id response
 
+    # run_or_die: runs the codex command, exits with error message if it fails
     out=$(run_or_die "codex" codex e \
         --sandbox read-only \
         --skip-git-repo-check \
@@ -98,6 +99,7 @@ codex_resume() {
     local session_id=$1 prompt=$2 effort=${3:-high}
     local out response
 
+    # run_or_die: runs the codex command, exits with error message if it fails
     out=$(run_or_die "codex resume" codex e \
         --sandbox read-only \
         --skip-git-repo-check \
