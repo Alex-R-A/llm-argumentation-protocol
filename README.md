@@ -1,4 +1,4 @@
-# Stop Wondering
+# Vibe Coding, No Longer a Finger in the Sky
 ### Which decision to accept? Let two LLMs duke it out. Get PhD-worthy advice.
 
 ---
