@@ -78,30 +78,35 @@ Pick something you're actually uncertain about. You'll see the difference.
 ## Situations You'll Recognize
 
 **You built something and want to know if it'll hold up.**
+
 *You just implemented auth with JWTs stored in localStorage. Feels fine, but you've heard conflicting things about security.*
 ```
 follow all rules in codex-ask skill and evaluate if my JWT localStorage approach in src/auth is secure
 ```
 
 **You're stuck choosing between two options.**
+
 *State management for a React dashboard. Redux? Zustand? Context? Claude suggested Zustand but you're not sure.*
 ```
 follow all rules in gemini-ask skill and evaluate Redux vs Zustand for this dashboard's state needs
 ```
 
 **The LLM gave you an answer but something feels off.**
+
 *It recommended MongoDB for your app, but your data has a lot of relationships. That doesn't seem right.*
 ```
 follow all rules in codex-ask skill and evaluate if MongoDB is right for data with foreign key relationships
 ```
 
 **You're leaning one way but want a devil's advocate.**
+
 *Microservices sound right for this project, but you've been burned by overengineering before.*
 ```
 follow all rules in gemini-ask skill and argue against microservices for this project
 ```
 
 **You want to stress-test before you commit.**
+
 *The API design looks good on paper. But you've shipped "good on paper" before.*
 ```
 follow all rules in codex-ask skill and find problems with the API design in src/routes/
