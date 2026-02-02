@@ -208,6 +208,12 @@ Implemented as Claude Code skills. The orchestrating agent loads the skill speci
 
 **Invocation:** Load skill, pose question. Protocol executes automatically.
 
+**Recommended prompt format:** Start prompts with "follow all rules in codex-ask skill..." (or gemini-ask). Example:
+
+> "follow all rules in codex-ask skill and critique the authentication flow in src/auth/"
+
+This phrasing ensures the orchestrating LLM adheres to the full protocol rather than taking shortcuts it deems "more efficient." Without explicit instruction to follow all rules, LLMs may skip mandated steps (phase tracking, challenge mechanics, evidence gates) in favor of faster but less rigorous approaches.
+
 **Modes:**
 
 | Mode | Behavior |
