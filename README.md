@@ -4,7 +4,7 @@ A Phone-a-Friend second-opinion workflow that forces evidence-grounded disagreem
 
 ## The Moment You Need This
 
-You're three hours into building something. The LLM has been helpful. Now it's decision time: "Should we use PostgreSQL or MongoDB here?" or "Event sourcing or traditional CRUD?" or "Should this be a microservice or just a module?"
+You're three hours into building something. The LLM has been helpful. Now it's decision time: "Should we use a Builder or Factory pattern here?" or "PostgreSQL or MongoDB?" or "Event sourcing or traditional CRUD?"
 
 The LLM gives you an answer. Confidently. With bullet points and everything.
 
