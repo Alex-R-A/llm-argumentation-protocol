@@ -1,5 +1,5 @@
 # Stop Wondering
-### What decision to accept? Let two LLMs duke it out. Get PhD-worthy advice.
+### Which decision to accept? Let two LLMs duke it out. Get PhD-worthy advice.
 
 ---
 
