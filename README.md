@@ -27,9 +27,7 @@ whether PostgreSQL or MongoDB is the right choice for this app, then defend it
 
 Now you've got two LLMs forced to argue, cite evidence, and defend their positions. Claims that can't survive scrutiny get dismissed. You're not trusting vibes anymore.
 
-**Use this if:** You prompt LLMs for decisions you can't fully verify yourself.
-
-**Skip this if:** You want one-shot brainstorming or already know the answer.
+You prompt LLMs for decisions you can't fully verify yourself.
 
 ---
 
