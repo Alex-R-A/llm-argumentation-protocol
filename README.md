@@ -1,7 +1,7 @@
 # Phone-a-Friend
 ### Adversarial Peer Review for LLMs
 
-A second-opinion workflow that forces LLMs to argue, cite evidence, and defend their positions.
+Make decisions you can trust in domains you can't verify yourself.
 
 ---
 
@@ -27,7 +27,7 @@ whether PostgreSQL or MongoDB is the right choice for this app, then defend it
 
 Now you've got two LLMs forced to argue, cite evidence, and defend their positions. Claims that can't survive scrutiny get dismissed. You're not trusting vibes anymore.
 
-You prompt LLMs for decisions you can't fully verify yourself.
+You don't need to be a database expert to know which choice is right. You need receipts.
 
 ---
 
@@ -49,6 +49,8 @@ Here's what each means for you:
 - **Unresolved** — Nobody knows yet. You need more data, or it's genuinely your call.
 
 That last one matters. When something lands in Unresolved, that's not failure—that's the protocol being honest. It's telling you exactly where uncertainty lives and what data would resolve it. That's more valuable than false confidence.
+
+You walk away knowing what's solid, what's wrong, and what still needs work—without becoming an expert first.
 
 ---
 
@@ -134,6 +136,8 @@ Look at what backs each point:
 - **Just reasoning**: Weaker. Treat as informed opinion, not fact.
 
 When something lands in Unresolved, that's valuable—it tells you exactly where to dig before committing.
+
+The receipts let you act with confidence in areas outside your expertise.
 
 ---
 
