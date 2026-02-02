@@ -95,7 +95,7 @@ Pick something you're actually uncertain about. You'll get a decision you can tr
 
 ## What It Feels Like
 
-You're building a dashboard for a client. The data model is getting complex—nested objects, relationships everywhere. Claude says "just use MongoDB, it's flexible." But you've been burned by "flexible" before. Three months in, queries get slow, you're denormalizing everything, and you're basically building a relational database by hand.
+You're building a dashboard for a client. The data model is getting complex: nested objects, relationships everywhere. Claude says "just use MongoDB, it's flexible." But you've been burned by "flexible" before. Three months in, queries get slow, you're denormalizing everything, and you're basically building a relational database by hand.
 
 So you ask:
 
@@ -113,11 +113,11 @@ You tell Claude to implement it that way. And when you're three months in and it
 
 **"Isn't this just asking twice?"**
 
-No. One LLM proposes, the other challenges. The consultee can't "win" by sounding confident—claims must survive evaluation with evidence. Dropped challenges get reminders. Undefended points get dismissed. It's adversarial by design.
+No. One LLM proposes, the other challenges. The consultee can't "win" by sounding confident. Claims must survive evaluation with evidence. Dropped challenges get reminders. Undefended points get dismissed. It's adversarial by design.
 
 **"Can't they both be wrong?"**
 
-Yes. LLMs share training data and blind spots. That's why agreement alone isn't enough—the protocol requires evidence. When you see something marked Agreed, check if it cites actual files, test results, or execution output. Test results beat file citations beat "trust me."
+Yes. LLMs share training data and blind spots. That's why agreement alone isn't enough. The protocol requires evidence. When you see something marked Agreed, check if it cites actual files, test results, or execution output. Test results beat file citations beat "trust me."
 
 **"How do I know when to trust the result?"**
 
@@ -126,7 +126,7 @@ Look at what backs each point:
 - **File citations** (specific line references): Good. Verify if high-stakes.
 - **Just reasoning**: Weaker. Treat as informed opinion, not fact.
 
-When something lands in Unresolved, that's valuable—it tells you exactly where to dig before committing.
+When something lands in Unresolved, that's valuable. It tells you exactly where to dig before committing.
 
 The receipts let you act with confidence in areas outside your expertise.
 
