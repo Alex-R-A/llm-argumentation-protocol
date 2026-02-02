@@ -129,7 +129,7 @@ Two LLMs agreeing doesn't mean they're right. Three ways this fails:
 
 **Verification gap:** This protocol treats consultee output as *hypotheses* until grounded in artifacts. If you don't have tests or code to verify a claim, it remains a shared guess.
 
-Agreement is signal, not proof.
+**So what is truth?** In this protocol, truth is grounded evidence: test results, file citations, execution output. The evidence hierarchy (Execution > Textual > Claim) exists precisely because LLM agreement is weak. When you see an Agreed item backed by `[verified: file:line]`, that's stronger than one backed by reasoning alone. When you see Unresolved, that's the protocol being honest about uncertainty—take it seriously. The skill doesn't give you truth; it gives you a structured way to find out what's actually supported and what's still a guess.
 
 ---
 
