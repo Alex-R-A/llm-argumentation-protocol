@@ -28,6 +28,18 @@ The protocol draws from several formal traditions:
 
 **Phased Scope Restriction.** Content introduction is progressively restricted: CONSTRUCTIVE admits new arguments; DEVELOPMENT permits extensions, defenses, and rebuttals; CRYSTALLIZATION allows only defenses to open challenges. This staged restriction forces convergence by eliminating late-stage scope expansion.
 
+## Non-goals
+
+This protocol explicitly does not attempt:
+
+1. **Computing Dung extensions**: The acceptance semantics are procedural, not fixpoint-based. Agreed/Dismissed/Unresolved partitions do not correspond to grounded, preferred, or stable extensions. The protocol prioritizes practical termination over semantic completeness.
+
+2. **Replacing human judgment**: Unresolved outcomes surface genuine uncertainty for human decision. The protocol identifies where evidence is missing or criteria diverge; it does not force artificial consensus.
+
+3. **Training or fine-tuning**: This is a runtime governance protocol, not a training signal. Unlike debate-as-training approaches, the goal is immediate decision quality, not model improvement.
+
+4. **Guaranteeing correctness**: Two LLMs with correlated training cannot provide independent verification. The protocol reduces but cannot eliminate shared blind spots.
+
 ## Protocol Specification
 
 ### State Space
@@ -238,8 +250,44 @@ State is externalized to prevent in-model drift. File is ground truth.
 | Minimal | Disables arbitration and stress testing; retains phases, ledger, challenge tracking |
 | Quick | 2-iteration max, stateless, no challenge IDs; for simple binary decisions |
 
+## Limitations
+
+**Correlation limitation.** LLMs trained on overlapping data are not independent evidence sources. Agreement between orchestrator and consultee provides weaker epistemic support than agreement between genuinely independent reasoners. The protocol mitigates this through evidence requirements but cannot eliminate shared blind spots or systematic errors present in training data.
+
+**Evidence availability.** The evidence gate can force claims into Unresolved even when true, if supporting artifacts are inaccessible. This is a deliberate conservative bias: the protocol prefers acknowledged uncertainty over false confidence. Users must accept that some valid claims will remain unverified.
+
+**Citation fragility.** Textual evidence depends on accurate file:line references and verbatim quotes. Consultees may hallucinate citations or quote selectively. The protocol requires orchestrator verification of citations before acceptance, but verification itself may miss subtle misrepresentations.
+
+**Adversarial behavior.** The protocol assumes good-faith participation. A consultee could game the system through fabricated evidence references, strategic ambiguity, or sandbagging (deliberately weak initial positions to appear reasonable when "conceding"). No mechanism detects intentional deception.
+
+**Task mismatch.** The adversarial structure may suppress creative exploration on open-ended tasks. Evidence requirements disadvantage novel ideas lacking prior artifacts. Quick and Minimal modes exist for less constrained deliberation, but users must judge when convergence pressure helps versus hinders.
+
+**External validity.** Protocol behavior may vary across model families, temperature settings, context lengths, and tool availability. Results from one LLM pairing may not transfer to others.
+
+## Related Work
+
+**Dialogue games and argumentation.** The challenge/defense mechanics draw from formal dialogue theory (Walton & Krabbe, 1995), where participants exchange moves under commitment rules. The phased structure resembles persuasion dialogues with explicit burden-of-proof shifts. Unlike classical dialogue games, this protocol operates between LLMs rather than humans, requiring additional safeguards against attention failures and position drift.
+
+**Structured argumentation.** ASPIC+ (Modgil & Prakken, 2014) and assumption-based argumentation provide richer internal structure than Dung's abstract attacks. This protocol uses simpler attack relations for tractability but could extend to structured arguments if consultees reliably produced them.
+
+**Belief revision.** The ledger's `revision` tag and position stability checks relate to AGM-style belief revision (Alchourrón, Gärdenfors & Makinson, 1985), which formalizes rational belief change under new information. The protocol enforces explicit justification for position changes, preventing unacknowledged drift.
+
+**LLM debate.** Irving et al. (2018) proposed debate as a training signal for AI alignment. While sharing adversarial structure, that work focuses on model improvement through debate outcomes. This protocol is a runtime governance mechanism: it does not train models, but structures their interaction for immediate decision quality. The bounded rounds, evidence gates, and provenance tracking have no analogue in debate-as-training.
+
+**Multi-agent deliberation.** The protocol relates to distributed AI systems where multiple agents must reach consensus (Olfati-Saber et al., 2007). The key difference is epistemic: LLM agents share training biases, so convergence mechanisms must account for correlated errors rather than assuming independent observations.
+
 ## References
 
+- Alchourrón, C.E., Gärdenfors, P., & Makinson, D. (1985). On the logic of theory change: Partial meet contraction and revision functions. *Journal of Symbolic Logic*, 50(2), 510-530.
+
 - Dung, P.M. (1995). On the acceptability of arguments and its fundamental role in nonmonotonic reasoning, logic programming and n-person games. *Artificial Intelligence*, 77(2), 321-357.
+
+- Irving, G., Christiano, P., & Amodei, D. (2018). AI safety via debate. *arXiv preprint arXiv:1805.00899*.
+
+- Modgil, S., & Prakken, H. (2014). The ASPIC+ framework for structured argumentation: A tutorial. *Argument & Computation*, 5(1), 31-62.
+
+- Olfati-Saber, R., Fax, J.A., & Murray, R.M. (2007). Consensus and cooperation in networked multi-agent systems. *Proceedings of the IEEE*, 95(1), 215-233.
+
+- Walton, D.N., & Krabbe, E.C.W. (1995). *Commitment in Dialogue: Basic Concepts of Interpersonal Reasoning*. SUNY Press.
 
 For the human-readable protocol explanation, see [PROTOCOL-EXPLAINED-FOR-HUMANS.md](PROTOCOL-EXPLAINED-FOR-HUMANS.md).
