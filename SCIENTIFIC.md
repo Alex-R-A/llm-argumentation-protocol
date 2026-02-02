@@ -22,7 +22,7 @@ This protocol addresses each through explicit mechanisms: epistemic gates, anti-
 
 The protocol draws from several formal traditions:
 
-**Abstract Argumentation Theory.** Following Dung (1995), arguments exist in attack relations. A claim under challenge must be defended or concedes defeat. The acceptance semantics (Agreed/Dismissed/Unresolved) partition the argument space, though the computation is procedural rather than fixpoint-based.
+**Abstract Argumentation Theory.** Following Dung's seminal work on abstract argumentation frameworks (1995), arguments exist in attack relations. A claim under challenge must be defended or concedes defeat. The acceptance semantics (Agreed/Dismissed/Unresolved) partition the argument space, though the computation is procedural rather than fixpoint-based.
 
 **Epistemic Constraints.** Empirical claims require verification against shared artifacts. The evidence hierarchy distinguishes execution traces (strongest), textual citations, and unverified assertions. Claims lacking grounding cannot achieve acceptance regardless of rhetorical force.
 
@@ -87,6 +87,7 @@ Each ledger entry carries a provenance tag determining its epistemic weight:
 | `user` | User-provided constraint | Authoritative; cannot be superseded |
 | `verified` | Confirmed against artifact | Strong; includes file:line reference |
 | `<consultee>-unverified` | Consultee claim, unverified | Hypothesis only; cannot upgrade empirical claims |
+| `orchestrator-unverified` | Orchestrator inference, unverified | Same constraints as consultee-unverified |
 | `revision` | Position change | Requires explicit justification |
 
 **Critical constraint:** `<consultee>-unverified` entries cannot: (a) justify upgrading empirical claims to Agreed, (b) supersede `user` or `verified` entries, (c) serve as arbitration constraints.
@@ -121,7 +122,7 @@ Execution proceeds through eight stages:
 
 ```
 0. Invoke     : Gate check (explicit request, substantive question)
-1. Ask        : Initial prompt with preamble, user question, ledger
+1. Ask        : Construct SSM (shape, tangents, drift_signals), then initial prompt with preamble, user question, ledger
 2. Triage     : Classify points: in-scope → Evaluate, out-of-scope → Dismissed
 3. Evaluate   : Assign: AGREE | SKEPTICAL | REJECT | ILL-FORMED
 4. Critique   : Issue challenges for SKEPTICAL/REJECT points
@@ -140,7 +141,7 @@ Stage 0 is a pre-gate. Stages 2-6 repeat until termination. Format failures do n
 | **AGREE** | Claim accepted | → Agreed bucket |
 | **SKEPTICAL** | Flaw identified, defense possible | Issue challenge, standard window |
 | **REJECT** | Claim wrong, one chance to rebut | Issue challenge, single round |
-| **ILL-FORMED** | Unevaluable (ambiguous, not a claim) | Request clarification |
+| **ILL-FORMED** | Unevaluable (ambiguous, not a claim) | Request clarification; if unresolved after retry → Dismissed (tag: ILL-FORMED) |
 
 ### Acceptance Semantics
 
@@ -160,6 +161,8 @@ Strict ordering for empirical claim verification:
 2. **Textual**: Verbatim citations with path:line reference
 3. **Claim**: Unverified assertion (insufficient for acceptance)
 
+Only levels 1-2 satisfy the evidence gate. Claims at level 3 cannot achieve Agreed status for empirical assertions regardless of reasoning quality.
+
 ### Attack/Defense Mechanics
 
 ```
@@ -176,6 +179,8 @@ Defense evaluation:
 
 ### Bias Calibration
 
+*Note: These are invariant-level constraints that apply throughout execution, positioned here for proximity to the mechanics they constrain.*
+
 The protocol includes mechanisms against evaluation bias:
 
 **Calibration principle.** Apply identical skepticism to consultee proposals as to self-generated ideas. External origin is not evidence for or against validity.
@@ -185,6 +190,8 @@ The protocol includes mechanisms against evaluation bias:
 2. Does current position contradict previous position?
 
 Contradiction without explicit acknowledgment ("Revising from X to Y because...") is prohibited. Unacknowledged drift triggers ledger entry with `revision` tag.
+
+*Implementation note:* Position history is tracked in the externalized state file, not agent memory. This sidesteps bounded context limitations by persisting positions to disk and re-loading relevant entries each iteration.
 
 **Anti-sycophancy guard.** If consultee contradicts its earlier position without acknowledgment, challenge with citation: "Iteration 2 you claimed X, now you claim ¬X. Reconcile."
 
@@ -199,7 +206,7 @@ Prompt framing determines which learned behavioral patterns activate in the cons
 | Evidence production | "Cite specific examples" | "Explain why" |
 | Adversarial analysis | "Steelman the strongest objection" | "Any concerns?" |
 
-Neutral question framing is required: questions should not presuppose answers or lead toward conclusions the orchestrator already holds. If the orchestrator has a position, it should be stated as a position to be challenged, not as context framing the "correct" answer.
+Neutral question framing is encouraged: questions should not presuppose answers or lead toward conclusions the orchestrator already holds. If the orchestrator has a position, it should be stated as a position to be challenged, not as context framing the "correct" answer. (See Limitations for enforcement constraints.)
 
 ### Arbitration (Optional)
 
@@ -207,7 +214,7 @@ Before presenting output, invoke secondary verification:
 
 **Triggers:** (a) 2+ unresolved items, (b) early unanimous lacking evidence, (c) high-stakes decision, (d) user request.
 
-**Prompt:** Question + ledger + buckets, no attribution. "Are agreed points well-supported? Dismissals justified? Unresolved genuinely blocked?"
+**Prompt:** Question + ledger + buckets. Agent names are omitted (no attribution), but bucket contents including point/reason pairs and challenge/defense exchanges are included for evaluation. "Are agreed points well-supported? Dismissals justified? Unresolved genuinely blocked?"
 
 Flags reduce confidence only. ≥50% flagged → present with warning or re-examine.
 
@@ -220,7 +227,7 @@ The protocol terminates under any of:
 3. **Early exit (trivial)**: Question factual, resolved by iter 2
 4. **Early exit (quality)**: Consultee unable to produce structured responses after retry
 
-**Deadlock classification** (3+ rounds on same point):
+**Deadlock classification** (3+ defense rounds on same challenge, tracked via `defense_rounds` counter):
 - Missing empirical data → route to Blocked, surface question to user
 - Definitional mismatch → clarify terms, retry once
 - Criteria divergence → surface tradeoff, let user choose
@@ -263,8 +270,8 @@ State is externalized to prevent in-model drift. File is ground truth.
   "iteration": 3,
   "phase": "DEVELOPMENT",
   "challenges": {
-    "C1": {"point": "...", "objection": "...", "raised_iter": 1, "status": "defended"},
-    "C2": {"point": "...", "objection": "...", "raised_iter": 2, "status": "open"}
+    "C1": {"point": "...", "objection": "...", "raised_iter": 1, "status": "defended", "defense_rounds": 1},
+    "C2": {"point": "...", "objection": "...", "raised_iter": 2, "status": "open", "defense_rounds": 0}
   },
   "ledger": ["F1 [user]: ...", "F2 [verified: ref]: ..."],
   "disputed": ["C2"],
@@ -287,7 +294,7 @@ State is externalized to prevent in-model drift. File is ground truth.
 | Mode | Behavior |
 |------|----------|
 | Standard | Full protocol with state persistence |
-| Minimal | Disables arbitration and stress testing; retains phases, ledger, challenge tracking |
+| Minimal | Disables arbitration and stress testing; retains phases, ledger, challenge tracking. Extended CONSTRUCTIVE can only trigger via coverage check (trigger A), not stress test (trigger B). |
 | Quick | 2-iteration max, stateless, no challenge IDs; for simple binary decisions |
 
 ## Limitations
@@ -303,6 +310,8 @@ State is externalized to prevent in-model drift. File is ground truth.
 **Task mismatch.** The adversarial structure may suppress creative exploration on open-ended tasks. Evidence requirements disadvantage novel ideas lacking prior artifacts. Quick and Minimal modes exist for less constrained deliberation, but users must judge when convergence pressure helps versus hinders.
 
 **External validity.** Protocol behavior may vary across model families, temperature settings, context lengths, and tool availability. Results from one LLM pairing may not transfer to others.
+
+**Neutral framing.** The requirement for neutral question framing (see Behavioral Induction) is aspirational. No mechanical test distinguishes neutral from leading questions; detection requires judgment. Orchestrators with strong priors may unconsciously frame questions to confirm existing beliefs. The protocol encourages but cannot enforce neutrality.
 
 ## Related Work
 
