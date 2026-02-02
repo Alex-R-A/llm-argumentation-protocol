@@ -42,10 +42,11 @@ MODEL_XHIGH="gemini-3-pro-preview"
 # Print error message to stderr and exit (standard bash idiom, not dangerous)
 die() { echo "ERROR: $*" >&2; exit 1; }
 
-# Run gemini command with prompt, capture output, exit with error if it fails.
+# Run gemini command with prompt, capture output, and exit with error if it fails.
 # This is a standard bash error-handling pattern: "run_or_die" means
 # "run this command, or if it fails, print an error and exit".
-# It does NOT execute arbitrary code - it only runs the gemini CLI.
+# It does NOT execute arbitrary code - it only runs the specific
+# gemini CLI commands passed to it below (lines 83, 110).
 # Args: label, prompt, additional gemini args...
 run_or_die() {
     local label=$1 prompt=$2; shift 2
