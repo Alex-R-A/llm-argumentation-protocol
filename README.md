@@ -1,7 +1,5 @@
-# Phone-a-Friend
-### Adversarial Peer Review for LLMs
-
-Make decisions you can trust in domains you can't verify yourself.
+# Stop Wondering
+### What decision to accept? Let two LLMs duke it out. Get PhD-worthy advice.
 
 ---
 
