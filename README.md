@@ -6,6 +6,8 @@ A Phone-a-Friend second-opinion workflow that forces evidence-grounded disagreem
 
 You're three hours into building something. The LLM has been helpful. Now it's decision time: "Should we use a Builder or Factory pattern here?" or "PostgreSQL or MongoDB?" or "Event sourcing or traditional CRUD?"
 
+These aren't trivial choices. Get it wrong now and you're paying for it later, refactoring code that grew around a bad foundation, or worse, living with it forever because fixing it isn't worth the pain.
+
 The LLM gives you an answer. Confidently. With bullet points and everything.
 
 But wait. How do you know this is the right call? You're not a database expert. You don't know event sourcing beyond a YouTube video you half-watched. The LLM sounds sure, but:
