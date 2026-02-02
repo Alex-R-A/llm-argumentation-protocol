@@ -38,6 +38,15 @@ The Orchestrating LLM doesn't just relay questions and answers. It actively eval
 
 **Why this matters:** LLM-to-LLM agreement is explicitly called out as weak evidence due to "correlated training." Two models agreeing doesn't mean much if they learned from overlapping data and developed similar blind spots. The protocol treats convergence as a signal worth noting, not proof of correctness.
 
+**Bidirectional roles:** The roles aren't fixed. The orchestrator chooses the framing, which determines who proposes and who evaluates:
+
+- "How should we do X?" → Responding LLM proposes, Orchestrating LLM evaluates
+- "Critique this design: [design]" → Orchestrating LLM proposes, Responding LLM evaluates
+- "I think A, argue for B" → Devil's advocate, Responding LLM steelmans the opposing view
+- "Attack this design, I'll defend" → Red team exercise, Orchestrating LLM defends
+
+The protocol mechanics (phases, challenges, evidence gates) apply regardless of who proposes. Either LLM can be the defender; either can be the critic. The framing determines the adversarial stance, not the rigor of evaluation.
+
 ---
 
 ## Invocation Check
