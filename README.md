@@ -53,10 +53,10 @@ Each ledger entry carries a provenance tag determining its epistemic weight:
 |-----|--------|--------|
 | `user` | User-provided constraint | Authoritative; cannot be superseded |
 | `verified` | Confirmed against artifact | Strong; includes file:line reference |
-| `consultee-unverified` | Consultee claim, unverified | Hypothesis only; cannot upgrade empirical claims |
+| `<consultee>-unverified` | Consultee claim, unverified | Hypothesis only; cannot upgrade empirical claims |
 | `revision` | Position change | Requires explicit justification |
 
-**Critical constraint:** `consultee-unverified` entries cannot: (a) justify upgrading empirical claims to Agreed, (b) supersede `user` or `verified` entries, (c) serve as arbitration constraints.
+**Critical constraint:** `<consultee>-unverified` entries (e.g., `codex-unverified`, `gemini-unverified`) cannot: (a) justify upgrading empirical claims to Agreed, (b) supersede `user` or `verified` entries, (c) serve as arbitration constraints.
 
 ### Phase Transition Function
 
@@ -218,12 +218,12 @@ Implemented as Claude Code skills. The orchestrating agent loads the skill speci
 
 ### Deliberation Flows
 
-The first prompt's request to Codex is completely open. The orchestrator chooses the framing, which determines the deliberation flow:
+The first prompt's framing is open. The orchestrator chooses it, which determines the deliberation flow:
 
 | Framing | Flow |
 |---------|------|
-| "How should we do X?" | Codex proposes → Orchestrator evaluates |
-| "Critique this design: [design]" | Orchestrator proposes → Codex evaluates |
+| "How should we do X?" | Consultee proposes → Orchestrator evaluates |
+| "Critique this design: [design]" | Orchestrator proposes → Consultee evaluates |
 | "I think A, argue for B" | Devil's advocate / steelman |
 | "Here's partial solution, fill gaps" | Collaborative completion |
 | "Compare approaches A vs B vs C" | Joint comparative analysis |
