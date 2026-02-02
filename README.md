@@ -1,6 +1,9 @@
-# LLM Argumentation Protocol
+# Phone-a-Friend
+### An LLM Argumentation Protocol
 
-A Phone-a-Friend second-opinion workflow that forces evidence-grounded disagreement resolution between LLMs.
+A second-opinion workflow that forces evidence-grounded disagreement resolution between LLMs.
+
+---
 
 ## The Moment You Need This
 
@@ -32,36 +35,17 @@ Now you've got two LLMs forced to argue, cite evidence, and defend their positio
 
 After a few rounds of back-and-forth, they've either agreed by giving each other proof, or they've told you exactly what's still uncertain and why. Either way, you can stake that this is a better decision than you or one LLM could have made alone with all the info currently available.
 
----
-
-## Who This Is For
-
-**Use this if:** You prompt LLMs for code, architecture, or decisions in domains you can't fully verify yourself. You want a repeatable sanity check, not blind trust in confident-sounding answers.
+**Use this if:** You prompt LLMs for code, architecture, or decisions in domains you can't fully verify yourself.
 
 **Skip this if:** You want one-shot brainstorming or already know the answer. The overhead isn't worth it for simple lookups.
 
-## What You Get
-
-Results bucketed as:
-- **Agreed** — Survived challenges given available artifacts (not "truth", just defended)
-- **Dismissed** — Failed: wrong, unsupported, out-of-scope, or conceded
-- **Unresolved** — Blocked: missing data, definitional mismatch, or tradeoff requiring your call
-
-Each item includes *why* it landed there and *what evidence would change the verdict*. You get a visible trail of challenges and defenses, so "sounds right" doesn't win by vibes.
-
-## The Core Warning
-
-Agreement between models is not independent verification.
-
-LLMs share training data and blind spots (epistemic inflation). Two models confidently agreeing on something plausible-sounding doesn't make it true. This protocol treats consultee output as hypotheses until grounded in artifacts: test results, file citations, execution output.
+---
 
 ## Quick Start
 
 **Prerequisites:**
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed (the skill runs inside Claude Code)
-- At least one consultee CLI installed and authenticated:
-  - [Codex CLI](https://github.com/openai/codex) for `codex-ask`
-  - [Gemini CLI](https://github.com/google-gemini/gemini-cli) for `gemini-ask`
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed
+- [Codex CLI](https://github.com/openai/codex) or [Gemini CLI](https://github.com/google-gemini/gemini-cli) installed and authenticated
 
 **Install:**
 ```bash
@@ -71,32 +55,18 @@ cp -r llm-argumentation-protocol/codex-ask ~/.claude/skills/
 cp -r llm-argumentation-protocol/gemini-ask ~/.claude/skills/
 ```
 
-**First run** (in Claude Code):
+**Run** (in Claude Code):
 ```
 follow all rules in codex-ask skill and critique my authentication flow in src/auth/
 ```
 
-Or have the consultee propose and defend:
-```
-follow all rules in gemini-ask skill to have gemini propose a caching strategy for this API and defend it
-```
+**Performance note:** Codex scans the working directory by default. For abstract questions unrelated to local code, this adds overhead. Use `-C /tmp` to skip: `codex e --sandbox read-only -C /tmp - <<< "Your question"`
 
-See [INSTRUCTIONS.md](INSTRUCTIONS.md) for more prompt patterns.
+---
 
-## Phone-a-Friend Recipes
+## The Verdict
 
-Copy-paste these when you have an answer and want to catch mistakes:
-
-| Recipe | When to use |
-|--------|-------------|
-| "validate my reasoning on X" | You have a design, want holes found |
-| "attack this design, I'll defend" | Red team your own proposal |
-| "what would change your conclusion?" | Find the crux of disagreement |
-| "come up with independent solution for X and defend it" | Get fresh perspective, stress-test it |
-
-Pick one recipe per run to avoid scope creep.
-
-## Example (What It Looks Like)
+You don't get a chat transcript. You get a verdict.
 
 ```
 Iteration 3/8. Phase: DEVELOPMENT
@@ -114,7 +84,25 @@ SKEPTICAL: Point 2 — claimed 10x speedup, no benchmark
 REJECT: Point 4 — contradicts F1 (user constraint)
 ```
 
-Final output buckets show what survived, what failed, and what's blocked on missing data. Unresolved is a valid outcome when you genuinely lack information.
+Results bucketed as:
+- **Agreed** — Survived challenges given available artifacts (not "truth", just defended)
+- **Dismissed** — Failed: wrong, unsupported, out-of-scope, or conceded
+- **Unresolved** — Blocked: missing data, definitional mismatch, or tradeoff requiring your call
+
+Each item includes *why* it landed there and *what evidence would change the verdict*. Unresolved is a valid outcome when you genuinely lack information.
+
+---
+
+## The Catch
+#### Agreement != Truth
+
+Two LLMs agreeing doesn't mean they're right.
+
+LLMs share training data and blind spots (epistemic inflation). Two models confidently agreeing on something plausible-sounding doesn't make it true. This protocol treats consultee output as hypotheses until grounded in artifacts: test results, file citations, execution output.
+
+Agreement is signal, not proof.
+
+---
 
 ## How It Works
 
@@ -127,9 +115,7 @@ Final output buckets show what survived, what failed, and what's blocked on miss
 
 **Bidirectional:** Either LLM can propose, either can critique. The orchestrator chooses the framing.
 
-## Safety Rails
-
-Why this beats naive "ask two LLMs":
+### Why It Works
 
 **Anti-authority:** The consultee can't "win" by confidence. Claims must survive evaluation, not just sound good.
 
@@ -139,7 +125,7 @@ Why this beats naive "ask two LLMs":
 
 **Position stability:** If either side contradicts itself without acknowledgment, it gets called out.
 
-## Modes
+### Modes
 
 | Mode | Use when |
 |------|----------|
@@ -147,30 +133,28 @@ Why this beats naive "ask two LLMs":
 | Minimal | Low-stakes, ≤5 points, want less overhead |
 | Quick | 2-round stateless sanity check, binary decisions |
 
-Invoke by stating the mode in your prompt: "Quick mode: is this approach sound?"
+Invoke by stating the mode: "Quick mode: is this approach sound?"
 
-## Troubleshooting
+---
 
-**Codex scans the working directory** by default. For abstract questions unrelated to local code, this adds overhead. Use an empty workdir:
-```bash
-codex e --sandbox read-only -C /tmp - <<< "Your abstract question"
-```
+## Recipes
 
-**Session continuity:** Wrappers support `new` (start) and `resume` (continue). Multi-turn deliberation preserves context.
+Copy-paste these when you have an answer and want to catch mistakes:
 
-**Background notifications:** After deliberation ends, you may see task completion notices. These are cosmetic; ignore them.
+| Recipe | When to use |
+|--------|-------------|
+| "validate my reasoning on X" | You have a design, want holes found |
+| "attack this design, I'll defend" | Red team your own proposal |
+| "what would change your conclusion?" | Find the crux of disagreement |
+| "come up with independent solution for X and defend it" | Get fresh perspective, stress-test it |
 
-## Security
+See [INSTRUCTIONS.md](INSTRUCTIONS.md) for more prompt patterns.
 
-The skill uses shell wrappers (~120 lines each) rather than MCP servers. This is intentional: zero config, auditable, no server management.
-
-The wrappers call only the target CLI commands. Review them if you're cautious: `codex-wrapper.sh`, `gemini-wrapper.sh`.
-
-See [DISCLOSURE-READ-FIRST.md](DISCLOSURE-READ-FIRST.md) for details.
+---
 
 ## For the Rigorous
 
-The protocol implements bounded argumentation with formal acceptance semantics. If you want the machinery:
+The protocol implements bounded argumentation with formal acceptance semantics.
 
 **Invariants** (always hold):
 1. Anti-authoritarianism — Consultee output is never accepted without evaluation
@@ -183,4 +167,14 @@ The protocol implements bounded argumentation with formal acceptance semantics. 
 
 **Evidence hierarchy:** Execution (tests, logs) > Textual (file:line citations) > Claim (insufficient for Agreed).
 
-For the full specification (state space, phase transitions, challenge mechanics), see [PROTOCOL-EXPLAINED-FOR-HUMANS.md](PROTOCOL-EXPLAINED-FOR-HUMANS.md).
+For the full specification, see [PROTOCOL-EXPLAINED-FOR-HUMANS.md](PROTOCOL-EXPLAINED-FOR-HUMANS.md).
+
+---
+
+## Security
+
+The skill uses shell wrappers (~120 lines each) rather than MCP servers. This is intentional: zero config, auditable, no server management.
+
+The wrappers call only the target CLI commands. Review them if you're cautious: `codex-wrapper.sh`, `gemini-wrapper.sh`.
+
+See [DISCLOSURE-READ-FIRST.md](DISCLOSURE-READ-FIRST.md) for details.
