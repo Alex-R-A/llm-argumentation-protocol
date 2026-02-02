@@ -36,3 +36,26 @@
 **Workaround:** Manual deletion when desired.
 
 **Fix:** Auto-archive or retention policy (not yet implemented).
+
+---
+
+## Stale Task Notifications After Completion
+
+**Problem:** After a background task (Codex/Gemini wrapper) completes and results are retrieved via `TaskOutput`, `<task-notification>` events continue to arrive for the same task.
+
+**What's happening:**
+- Wrapper runs with `run_in_background: true`
+- LLM polls `TaskOutput` until complete, retrieves results
+- Notification system runs independently, doesn't know results were already consumed
+- Late notifications arrive after deliberation is done, sometimes after presenting to user
+
+**Symptoms:**
+- Random `<task-notification>` messages appear mid-conversation
+- Notifications reference tasks that are already complete
+- Can be confusing if they arrive after topic has moved on
+
+**Why it happens:** The notification system and `TaskOutput` polling are decoupled. Polling retrieves results immediately when ready. Notifications are pushed asynchronously and may arrive later due to timing, queuing, or delivery delays.
+
+**Workaround:** Silently ignore `<task-notification>` events for tasks whose results were already retrieved. Do not acknowledge to user.
+
+**Fix:** None needed if workaround followed. This is expected async behavior, not a bug.
