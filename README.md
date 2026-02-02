@@ -151,3 +151,9 @@ For the full specification, see [PROTOCOL-EXPLAINED-FOR-HUMANS.md](PROTOCOL-EXPL
 Shell wrappers (~120 lines each), not MCP servers. Zero config, fully auditable.
 
 Review them if you're cautious: `codex-wrapper.sh`, `gemini-wrapper.sh`. See [DISCLOSURE-READ-FIRST.md](DISCLOSURE-READ-FIRST.md).
+
+---
+
+## Known Issues
+
+See [KNOWN-ISSUES.md](KNOWN-ISSUES.md) for current limitations and workarounds.
