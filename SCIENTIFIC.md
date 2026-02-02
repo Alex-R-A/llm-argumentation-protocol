@@ -28,6 +28,22 @@ The protocol draws from several formal traditions:
 
 **Phased Scope Restriction.** Content introduction is progressively restricted: CONSTRUCTIVE admits new arguments; DEVELOPMENT permits extensions, defenses, and rebuttals; CRYSTALLIZATION allows only defenses to open challenges. This staged restriction forces convergence by eliminating late-stage scope expansion.
 
+## Computational Model
+
+The protocol assumes agents with the following architectural properties:
+
+**Bounded context.** Agents process a finite token window. Content exceeding this bound is inaccessible. The protocol externalizes state to files rather than relying on agent memory, and repeats critical content (user question, ledger) in each prompt.
+
+**Position-dependent attention.** Within the context window, attention weight on content decreases with distance from the current generation point. Early instructions receive diminishing consideration as context grows. The protocol counteracts this through explicit anchoring: verbatim repetition of the user question, numbered challenge IDs, and structured prompt formats that place critical information at predictable positions.
+
+**Stochastic generation.** Agent outputs are non-deterministic. Identical inputs may produce different outputs across runs. The protocol does not assume reproducibility; it tracks positions explicitly and requires acknowledged revisions for any change.
+
+**Behavioral mode selection.** Prompt structure activates different learned behavioral patterns. "What could be better?" invokes expansive brainstorming; "what breaks in actual use?" invokes grounded critique. The protocol specifies framings that induce critical analysis rather than agreeableness or theoretical exploration.
+
+**Correlated priors.** Agents trained on overlapping data share systematic biases. Agreement between such agents provides weaker epistemic support than agreement between independent reasoners. The protocol treats convergence as signal, not proof, and requires artifact-grounded evidence for empirical claims.
+
+These assumptions hold for current transformer-based LLMs. Protocols targeting agents with different architectures (persistent memory, deterministic outputs, independent training) may relax corresponding constraints.
+
 ## Non-goals
 
 This protocol explicitly does not attempt:
@@ -74,6 +90,16 @@ Each ledger entry carries a provenance tag determining its epistemic weight:
 | `revision` | Position change | Requires explicit justification |
 
 **Critical constraint:** `<consultee>-unverified` entries cannot: (a) justify upgrading empirical claims to Agreed, (b) supersede `user` or `verified` entries, (c) serve as arbitration constraints.
+
+**Claim-level provenance.** Within individual responses, claims carry epistemic status markers:
+
+| Marker | Meaning | Downstream effect |
+|--------|---------|-------------------|
+| `EVIDENCE` | Verifiable from shared artifacts | Can support empirical claims |
+| `INFERENCE` | Derived from evidence | Requires validation of derivation |
+| `GUESS` | Speculative, no grounding | Cannot support empirical claims |
+
+These markers enable filtering: claims marked GUESS cannot justify upgrading disputed points to Agreed. The orchestrator may request re-labeling if markers appear miscalibrated.
 
 ### Phase Transition Function
 
@@ -162,6 +188,19 @@ Contradiction without explicit acknowledgment ("Revising from X to Y because..."
 
 **Anti-sycophancy guard.** If consultee contradicts its earlier position without acknowledgment, challenge with citation: "Iteration 2 you claimed X, now you claim ¬X. Reconcile."
 
+### Behavioral Induction
+
+Prompt framing determines which learned behavioral patterns activate in the consultee. The protocol specifies framings that induce critical analysis:
+
+| Desired mode | Framing | Avoid |
+|--------------|---------|-------|
+| Grounded critique | "What breaks in actual use?" | "What could be better?" |
+| Minimal proposals | State design constraints upfront | Open-ended "improve this" |
+| Evidence production | "Cite specific examples" | "Explain why" |
+| Adversarial analysis | "Steelman the strongest objection" | "Any concerns?" |
+
+Neutral question framing is required: questions should not presuppose answers or lead toward conclusions the orchestrator already holds. If the orchestrator has a position, it should be stated as a position to be challenged, not as context framing the "correct" answer.
+
 ### Arbitration (Optional)
 
 Before presenting output, invoke secondary verification:
@@ -195,6 +234,7 @@ Properties that hold throughout execution:
 3. **Epistemic gate**: Empirical claims cannot achieve Agreed via unverified assertions
 4. **Defense obligation**: Challenged points must be defended by ID or are procedurally dismissed
 5. **Provenance integrity**: Ledger tags cannot be upgraded without verification
+6. **Role symmetry**: Protocol mechanics apply regardless of which agent proposes vs evaluates; framing determines adversarial stance, not evaluation rigor
 
 ## Complexity
 
