@@ -2,7 +2,33 @@
 
 A Phone-a-Friend second-opinion workflow that forces evidence-grounded disagreement resolution between LLMs.
 
-You already asked one LLM. This skill calls a second one, then makes them argue until claims either survive scrutiny or get dismissed. You don't ship hallucinations because "sounds right" doesn't pass the evidence gate.
+## The Moment You Need This
+
+You're three hours into building something. The LLM has been helpful. Now it's decision time: "Should we use PostgreSQL or MongoDB here?" or "Event sourcing or traditional CRUD?" or "Should this be a microservice or just a module?"
+
+The LLM gives you an answer. Confidently. With bullet points and everything.
+
+But wait. How do you know this is the right call? You're not a database expert. You don't know event sourcing beyond a YouTube video you half-watched. The LLM sounds sure, but:
+
+- Does it actually have all the context about your app?
+- Is it even explaining the tradeoffs correctly?
+- Is it having a "good day" or is this one of those hallucination moments?
+- How would you know the difference?
+
+You're on Who Wants to Be a Millionaire, staring at a question you genuinely don't know the answer to. The LLM just gave you its guess. But this is the kind of choice that'll bite you six months from now when you're knee-deep in a migration you didn't budget for.
+
+**This is when you Phone-a-Friend.**
+
+Tell Claude to call Codex (or Gemini) and have them duke it out:
+
+```
+follow all rules in codex-ask skill and have codex independently evaluate
+whether PostgreSQL or MongoDB is the right choice for this app, then defend it
+```
+
+Now you've got two LLMs forced to argue, cite evidence, and defend their positions. Claims that can't survive scrutiny get dismissed. Disagreements get surfaced with "here's what data would resolve this." You're not trusting vibes anymore.
+
+---
 
 ## Who This Is For
 
