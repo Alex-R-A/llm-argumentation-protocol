@@ -114,7 +114,7 @@ No. One LLM proposes, the other challenges. The consultee can't "win" by soundin
 
 **"Can't they both be wrong?"**
 
-Yes. LLMs share training data and blind spots. That's why agreement alone isn't enough—the protocol requires evidence. When you see something marked Agreed, check if it cites actual files, test results, or execution output. Receipts > reasoning > vibes.
+Yes. LLMs share training data and blind spots. That's why agreement alone isn't enough—the protocol requires evidence. When you see something marked Agreed, check if it cites actual files, test results, or execution output. Test results beat file citations beat "trust me."
 
 **"How do I know when to trust the result?"**
 
