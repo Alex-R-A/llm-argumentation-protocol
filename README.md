@@ -77,29 +77,39 @@ Pick something you're actually uncertain about. You'll see the difference.
 
 ## Situations You'll Recognize
 
-**You've designed something and want to know if it's solid:**
+**You built something and want to know if it'll hold up.**
+You just implemented auth with JWTs stored in localStorage. Feels fine, but you've heard conflicting things about security.
 ```
-validate my reasoning on [your design]
-```
-
-**You're choosing between two approaches and can't decide:**
-```
-come up with independent solution for [problem] and defend it
+follow all rules in codex-ask skill and evaluate if my JWT localStorage
+approach in src/auth is actually secure, challenge the implementation
 ```
 
-**You got an answer but something feels off:**
+**You're stuck choosing between two options.**
+State management for a React dashboard. Redux? Zustand? Context? Claude suggested Zustand but you're not sure.
 ```
-what would change your conclusion?
-```
-
-**You're leaning one way but want a devil's advocate:**
-```
-argue against [your preferred approach] - what am I missing?
+follow all rules in gemini-ask skill to independently evaluate Redux vs
+Zustand for this dashboard's state needs, defend whichever is better
 ```
 
-**You want to stress-test before committing:**
+**The LLM gave you an answer but something feels off.**
+It recommended MongoDB for your app, but your data has a lot of relationships. That doesn't seem right.
 ```
-find the strongest objections to this design and see if they hold up
+follow all rules in codex-ask skill to challenge the MongoDB recommendation
+- is it actually right for data with these foreign key relationships?
+```
+
+**You're leaning one way but want a devil's advocate.**
+Microservices sound right for this project, but you've been burned by overengineering before.
+```
+follow all rules in gemini-ask skill to argue against microservices for
+this project - what problems will I hit that I'm not seeing?
+```
+
+**You want to stress-test before you commit.**
+The API design looks good on paper. But you've shipped "good on paper" before.
+```
+follow all rules in codex-ask skill to find the strongest objections to
+the API design in src/routes/ and see if they hold up
 ```
 
 See [INSTRUCTIONS.md](INSTRUCTIONS.md) for more patterns.
