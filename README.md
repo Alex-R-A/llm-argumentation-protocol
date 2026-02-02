@@ -71,7 +71,7 @@ cp -r llm-argumentation-protocol/gemini-ask ~/.claude/skills/
 follow all rules in codex-ask skill and critique my authentication flow in src/auth/
 ```
 
-Pick something you're actually uncertain about. You'll see the difference.
+Pick something you're actually uncertain about. You'll get a decision you can trust without being the expert.
 
 ---
 
