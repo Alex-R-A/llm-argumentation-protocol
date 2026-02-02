@@ -6,7 +6,7 @@ These skills invoke external LLM CLIs (Codex, Gemini) via bash wrapper scripts r
 
 MCP would require users to configure and run additional servers for each consultee LLM. Shell scripts provide a turnkey solution: install the CLI, install the skill, done. No server configuration, no port management, no additional processes to maintain.
 
-Bash is the natural choice for CLI-to-CLI integration. The wrappers handle session management, argument passing, and response extraction in ~100 lines of portable shell code.
+Bash is the natural choice for CLI-to-CLI integration. The wrappers handle session management, argument passing, and response extraction in ~120 lines of portable shell code.
 
 ## Security Considerations
 

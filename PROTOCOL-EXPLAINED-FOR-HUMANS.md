@@ -236,7 +236,7 @@ When the Orchestrating LLM disagrees with a point, it issues a challenge. Two fl
 Facts accumulate in a numbered ledger (F1, F2, ...) with provenance tags:
 - `[user]` - User provided this
 - `[verified: reference]` - Checked against artifact
-- `[respondent-unverified]` - Responding LLM claimed this, not yet verified
+- `[<consultee>-unverified]` - Responding LLM claimed this, not yet verified (e.g., `codex-unverified`, `gemini-unverified`)
 - `[revision]` - Position changed from earlier
 
 **Key constraint:** Unverified claims from the Responding LLM cannot upgrade empirical claims to AGREED, cannot supersede user-provided or verified facts, and cannot serve as arbitration constraints.
@@ -245,7 +245,7 @@ This creates a trust hierarchy: user input > verified facts > unverified claims.
 
 **The verbatim rule:** Ledger entries must match their source exactly. No paraphrasing. Two exceptions: sensitive data gets explicit `[REDACTED: reason]` substitution, and oversized entries get `[see path:lines - excerpt: "..."]` references. These are explicit substitutions, not summaries. The rationale: paraphrasing introduces drift. Over multiple iterations, "approximately what the user said" becomes "what I remember the user meaning" becomes something else entirely.
 
-**Unverified = hypothesis:** The `[respondent-unverified]` tag marks claims that came from the Responding LLM but haven't been independently checked. These claims cannot: (a) justify upgrading empirical claims to AGREED, (b) supersede `[user]` or `[verified]` entries, (c) serve as arbitration constraints. By Synthesize, every unverified claim must be either verified (promoted), dismissed, or listed under "Not evaluated." Partial verification splits the claim: verified portion gets promoted, remainder stays unverified, original is superseded.
+**Unverified = hypothesis:** The `[<consultee>-unverified]` tag (e.g., `codex-unverified`, `gemini-unverified`) marks claims that came from the Responding LLM but haven't been independently checked. These claims cannot: (a) justify upgrading empirical claims to AGREED, (b) supersede `[user]` or `[verified]` entries, (c) serve as arbitration constraints. By Synthesize, every unverified claim must be either verified (promoted), dismissed, or listed under "Not evaluated." Partial verification splits the claim: verified portion gets promoted, remainder stays unverified, original is superseded.
 
 **Token limit handling:** If the ledger exceeds context budget, the protocol prioritizes: all `[user]` entries must be included, plus entries cited by current disputes. Omitted entry IDs are listed. User constraints are never silently dropped.
 
@@ -285,7 +285,7 @@ The "When Uncertain" section codifies conservative fallbacks for ambiguous situa
 
 The protocol acknowledges operational limitations:
 
-**Network isolation:** The Responding LLM cannot access websites. URL citations from it are therefore unverifiable and count as `[respondent-unverified]` claims, not textual evidence. Only orchestrator-verified URL quotes (fetched and confirmed by the Orchestrating LLM) qualify as evidence.
+**Network isolation:** The Responding LLM cannot access websites. URL citations from it are therefore unverifiable and count as `[<consultee>-unverified]` claims, not textual evidence. Only orchestrator-verified URL quotes (fetched and confirmed by the Orchestrating LLM) qualify as evidence.
 
 **Advisory role:** The Responding LLM reads and deliberates only. It is never prompted to write, edit, or create files. All changes are applied by the Orchestrating LLM after deliberation concludes. This prevents the Responding LLM from taking action based on its potentially flawed conclusions.
 
