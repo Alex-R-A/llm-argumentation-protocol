@@ -2,7 +2,7 @@
 
 A bounded multi-agent deliberation protocol implementing structured argumentation semantics for LLM-to-LLM consultation.
 
-**Primary implementation:** Claude Code (orchestrator) consulting Codex CLI (consultee). The protocol mechanics are LLM-agnostic; this implementation targets Codex CLI. Adapting to other consultees requires updating the wrapper and consultee-specific references (e.g., `codex-unverified` tag).
+**Primary implementation:** Claude Code (orchestrator) consulting external LLM CLIs (consultee). Two implementations are provided: `codex-ask` (consults Codex CLI) and `gemini-ask` (consults Gemini CLI). The protocol mechanics are LLM-agnostic; adapting to other consultees requires creating a wrapper and updating consultee-specific references (e.g., provenance tags).
 
 ## Abstract
 
@@ -53,10 +53,10 @@ Each ledger entry carries a provenance tag determining its epistemic weight:
 |-----|--------|--------|
 | `user` | User-provided constraint | Authoritative; cannot be superseded |
 | `verified` | Confirmed against artifact | Strong; includes file:line reference |
-| `codex-unverified` | Consultee claim, unverified | Hypothesis only; cannot upgrade empirical claims |
+| `consultee-unverified` | Consultee claim, unverified | Hypothesis only; cannot upgrade empirical claims |
 | `revision` | Position change | Requires explicit justification |
 
-**Critical constraint:** `codex-unverified` entries cannot: (a) justify upgrading empirical claims to Agreed, (b) supersede `user` or `verified` entries, (c) serve as arbitration constraints.
+**Critical constraint:** `consultee-unverified` entries cannot: (a) justify upgrading empirical claims to Agreed, (b) supersede `user` or `verified` entries, (c) serve as arbitration constraints.
 
 ### Phase Transition Function
 
@@ -192,13 +192,19 @@ Properties that hold throughout execution:
 | Dependency | Purpose |
 |------------|---------|
 | [Claude Code CLI](https://github.com/anthropics/claude-code) | Orchestrator agent (executes skill) |
-| [Codex CLI](https://github.com/openai/codex) | Consultee agent invocation |
+| [Codex CLI](https://github.com/openai/codex) | Consultee for `codex-ask` skill |
+| [Gemini CLI](https://github.com/google-gemini/gemini-cli) | Consultee for `gemini-ask` skill |
 
-Both CLIs must be installed and authenticated.
+Claude Code must be installed. Install and authenticate the consultee CLI(s) you intend to use.
 
 ## Usage
 
-Implemented as a Claude Code skill. The orchestrating agent loads this specification and executes deliberation against Codex CLI via `codex-wrapper.sh`.
+Implemented as Claude Code skills. The orchestrating agent loads the skill specification and executes deliberation against the consultee CLI via the corresponding wrapper script.
+
+| Skill | Consultee | Wrapper |
+|-------|-----------|---------|
+| `codex-ask` | Codex CLI | `codex-wrapper.sh` |
+| `gemini-ask` | Gemini CLI | `gemini-wrapper.sh` |
 
 **Invocation:** Load skill, pose question. Protocol executes automatically.
 
@@ -231,7 +237,7 @@ The protocol mechanics (phases, challenges, evidence gates) apply regardless of 
 
 ## Known Issues
 
-### Codebase scanning overhead
+### Codebase scanning overhead (Codex)
 
 By default, Codex scans the current working directory for context. For abstract/theoretical questions unrelated to local code, this adds unnecessary overhead.
 
@@ -243,10 +249,7 @@ codex e --sandbox read-only --skip-git-repo-check -C /tmp - <<< "Your abstract q
 
 Note: Using stdin (`<<<`) avoids escaping issues with special characters in prompts.
 
-**When to use:**
-- Abstract design questions ("Redis vs Memcached?")
-- Theoretical deliberations not referencing local files
-- General knowledge queries
+**When to use:** Abstract design questions, theoretical deliberations not referencing local files, general knowledge queries.
 
 **When NOT to use:** Deliberations where automatic codebase context scanning is valuable. File access via absolute paths still works regardless of `-C` flag.
 
@@ -254,23 +257,15 @@ The wrapper does not use `-C /tmp` by default to preserve automatic context scan
 
 ### Response parsing
 
-The wrapper parses CLI stdout rather than using `--output-schema` for structured output. Rationale:
-
-- **Deterministic:** Session ID and response boundaries are CLI format, not LLM-generated
-- **Reliable:** Schema enforcement depends on LLM compliance. Under complex reasoning, models may break schema to explain themselves
-- **Simple:** No temp files, no jq dependency, just sed/awk
-
-The CLI output structure (`session id: XXX` in header, response between `codex` and `tokens used` lines) is machine-parseable.
+Both wrappers parse CLI stdout rather than using structured output schemas. Rationale: session ID and response boundaries are CLI format (not LLM-generated), schema enforcement depends on LLM compliance (which can break under complex reasoning), and parsing is simple (sed/awk, no dependencies).
 
 ### Model selection
 
-The wrapper (`codex-wrapper.sh`) defaults to `gpt-5.2`. Users can change `MODEL="gpt-5.2"` to `MODEL="gpt-5.2-codex"` in the script.
-
-While `gpt-5.2-codex` is optimized for coding implementation tasks, testing indicates `gpt-5.2` performs better for reasoning and deliberation, which is the primary use case for this skill.
+Each wrapper has a default model configured. Edit the `MODEL` variable in the wrapper script to change it. Reasoning-optimized models typically perform better than coding-optimized models for deliberation tasks.
 
 ### Session continuity
 
-The wrapper uses `new` to start a session and `resume` to continue it. This enables multi-turn deliberation with context preserved across iterations.
+Both wrappers support session continuity: `new` starts a session, `resume` continues it. This enables multi-turn deliberation with context preserved across iterations.
 
 ### Background task completion notifications
 
