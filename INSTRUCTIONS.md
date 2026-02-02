@@ -30,4 +30,9 @@ Start a new Claude Code session and invoke the skill with prompts like:
 
 **Why "follow all rules"?** This phrasing ensures the orchestrating LLM adheres to the full protocol rather than taking shortcuts it deems "more efficient." Without explicit instruction, LLMs may skip mandated steps (phase tracking, challenge mechanics, evidence gates) in favor of faster but less rigorous approaches.
 
+**When you want the consultee to propose and defend:** If you want Codex or Gemini to generate an independent solution and defend it against Claude's challenges, use wording like:
+
+- "follow all rules in codex-ask skill to ask codex to come up with an independent solution for X and defend it"
+- "follow all rules in gemini-ask skill to have gemini propose an architecture for Y and defend it"
+
 The skill will have Claude consult the external LLM before making decisions, producing a decision log with what survived scrutiny, what got rejected, and what remains unresolved.
