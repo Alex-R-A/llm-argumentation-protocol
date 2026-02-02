@@ -17,7 +17,7 @@
 
 **Workaround:** Always ask user before resuming/presenting from state files post-compaction.
 
-**Fix:** See `COMPACTION-RECOVERY.md` for full proposal.
+**Fix:** See `COMPACTION-RECOVERY.md` for full proposal. Fix is being worked on.
 
 ---
 
