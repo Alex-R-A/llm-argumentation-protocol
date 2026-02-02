@@ -4,3 +4,4 @@ copy_codex.sh
 gemini_copy.sh
 codex-ask/deliberations/*.json
 gemini-ask/deliberations/*.json
+claude-ask/deliberations/*.json

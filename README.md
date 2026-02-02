@@ -74,7 +74,8 @@ See [INSTRUCTIONS.md](INSTRUCTIONS.md) for more patterns.
 
 **Prerequisites:**
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed
-- [Codex CLI](https://github.com/openai/codex) or [Gemini CLI](https://github.com/google-gemini/gemini-cli) installed and authenticated
+- [Codex CLI](https://github.com/openai/codex) or [Gemini CLI](https://github.com/google-gemini/gemini-cli) installed and authenticated (for codex-ask/gemini-ask)
+- No external tools needed for claude-ask (uses Claude's Task tool internally)
 
 **Install:**
 ```bash
@@ -82,7 +83,12 @@ git clone https://github.com/Alex-R-A/llm-argumentation-protocol.git
 mkdir -p ~/.claude/skills
 cp -r llm-argumentation-protocol/codex-ask ~/.claude/skills/
 cp -r llm-argumentation-protocol/gemini-ask ~/.claude/skills/
+cp -r llm-argumentation-protocol/claude-ask ~/.claude/skills/
 ```
+
+**Which skill to use:**
+- `codex-ask` / `gemini-ask`: Cross-vendor consultation (Claude ↔ OpenAI/Google). Maximum independence, different training data.
+- `claude-ask`: Cross-model consultation within Claude (Opus ↔ Sonnet). No external CLI needed, but models share training data so blind spots may overlap.
 
 **Ask your first question:**
 ```
