@@ -35,4 +35,4 @@ Start a new Claude Code session and invoke the skill with prompts like:
 - "follow all rules in codex-ask skill to ask codex to come up with an independent solution for X and defend it"
 - "follow all rules in gemini-ask skill to have gemini propose an architecture for Y and defend it"
 
-The skill will have Claude consult the external LLM before making decisions, producing a decision log with what survived scrutiny, what got rejected, and what remains unresolved.
+The skill facilitates structured deliberation between Claude and the external LLM, with results categorized as agreed, dismissed, or unresolved.
