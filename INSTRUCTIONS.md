@@ -28,4 +28,6 @@ Start a new Claude Code session and invoke the skill with prompts like:
 - "follow all rules in codex-ask skill and find top 5 issues in my ..."
 - "follow all rules in gemini-ask skill and review my code in ..."
 
+**Why "follow all rules"?** This phrasing ensures the orchestrating LLM adheres to the full protocol rather than taking shortcuts it deems "more efficient." Without explicit instruction, LLMs may skip mandated steps (phase tracking, challenge mechanics, evidence gates) in favor of faster but less rigorous approaches.
+
 The skill will have Claude consult the external LLM before making decisions, producing a decision log with what survived scrutiny, what got rejected, and what remains unresolved.
