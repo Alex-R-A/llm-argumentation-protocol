@@ -43,6 +43,11 @@ die() { echo "ERROR: $*" >&2; exit 1; }
 # It does NOT execute arbitrary code - it only runs the specific
 # codex CLI commands passed to it below (lines 70, 97).
 # Args: label (for error context), command and args
+#
+# Note: Codex CLI writes metadata (including session_id) to stderr and
+# response to stdout. We intentionally merge them with 2>&1 because we
+# need both for parsing. This is different from gemini-wrapper which
+# separates them.
 run_or_die() {
     local label=$1; shift
     local out

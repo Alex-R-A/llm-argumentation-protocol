@@ -50,9 +50,18 @@ die() { echo "ERROR: $*" >&2; exit 1; }
 # Args: label, prompt, additional gemini args...
 run_or_die() {
     local label=$1 prompt=$2; shift 2
-    local out
-    out=$(echo "$prompt" | gemini "$@" 2>&1) || die "$label: $out"
-    printf '%s' "$out"
+    local stdout_file stderr_file exit_code
+    stdout_file=$(mktemp)
+    stderr_file=$(mktemp)
+    trap "rm -f '$stdout_file' '$stderr_file'" RETURN
+
+    echo "$prompt" | gemini "$@" >"$stdout_file" 2>"$stderr_file"
+    exit_code=$?
+
+    if [ $exit_code -ne 0 ]; then
+        die "$label: $(cat "$stderr_file" "$stdout_file")"
+    fi
+    cat "$stdout_file"
 }
 
 # Select model based on effort level
