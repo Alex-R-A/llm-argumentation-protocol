@@ -160,6 +160,22 @@ Review them if you're cautious: `codex-wrapper.sh`, `gemini-wrapper.sh`. See [DI
 
 ---
 
+## Round-Robin: When You Need More Than Two Voices
+
+The deliberation skills above are one-on-one: Claude consults one other model, they argue, you get a verdict. That works when you have a specific question with a defensible answer.
+
+But some problems aren't like that. You're exploring a design space, not evaluating a choice. You want divergent thinking, not convergent debate. "What's the right architecture?" is a different question than "Is this architecture right?"
+
+`round-robin-ask` puts you in the orchestrator seat across multiple models serially: Codex, Gemini, Sonnet, Opus. You ask each one separately, synthesize their takes, cross-pollinate the interesting bits, and let disagreements surface naturally without the peer pressure of models responding to each other directly. Each model's blind spots get exposed by the others' strengths. Codex proposes structure, Gemini finds failure modes, Sonnet stress-tests against examples, Opus reframes when everyone's stuck.
+
+```
+follow all rules in round-robin-ask skill to explore architecture options for [your problem]
+```
+
+Best for early-stage exploration, breaking out of tunnel vision, and problems where you don't yet know the right question to ask.
+
+---
+
 ## Known Issues
 
 See [KNOWN-ISSUES.md](KNOWN-ISSUES.md) for current limitations and workarounds.
