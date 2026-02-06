@@ -32,7 +32,7 @@
 set -euo pipefail
 
 # Model configuration - change here to use a different model
-MODEL="gpt-5.2"
+MODEL="gpt-5.3-codex"
 
 # Print error message to stderr and exit (standard bash idiom, not dangerous)
 die() { echo "ERROR: $*" >&2; exit 1; }
