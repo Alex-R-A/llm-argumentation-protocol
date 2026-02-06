@@ -35,7 +35,7 @@ You don't need to be a database expert to know which choice is right. You need r
 
 *You just implemented auth with JWTs stored in localStorage. Feels fine, but you've heard conflicting things about security.*
 ```
-follow all rules in codex-ask skill and evaluate if my JWT localStorage approach in src/auth is secure
+follow all rules in kimi-ask skill and evaluate if my JWT localStorage approach in src/auth is secure
 ```
 
 **You're stuck choosing between two options.**
