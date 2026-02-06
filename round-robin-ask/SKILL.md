@@ -25,18 +25,18 @@ Minimal three-model round-robin:
 
 ```bash
 # 1. Get initial takes (save session IDs)
-CODEX_ID=$(/Users/alexaustin/.claude/skills/codex-ask/codex-wrapper.sh new "Problem: [X]. Your structural take?" | head -1)
-GEMINI_ID=$(/Users/alexaustin/.claude/skills/gemini-ask/gemini-wrapper.sh new "Problem: [X]. Your reframe?" | head -1)
-KIMI_ID=$(/Users/alexaustin/.claude/skills/kimi-ask/kimi-wrapper.sh new "Problem: [X]. Your take?" | head -1)
+CODEX_ID=$(~/.claude/skills/codex-ask/codex-wrapper.sh new "Problem: [X]. Your structural take?" | head -1)
+GEMINI_ID=$(~/.claude/skills/gemini-ask/gemini-wrapper.sh new "Problem: [X]. Your reframe?" | head -1)
+KIMI_ID=$(~/.claude/skills/kimi-ask/kimi-wrapper.sh new "Problem: [X]. Your take?" | head -1)
 # For Sonnet, note the agentId from Task tool response
 
 # 2. Cross-pollinate (resume sessions)
-/Users/alexaustin/.claude/skills/codex-ask/codex-wrapper.sh resume $CODEX_ID "Gemini said [Y]. React?"
-/Users/alexaustin/.claude/skills/gemini-ask/gemini-wrapper.sh resume $GEMINI_ID "Codex said [Z]. React?"
-/Users/alexaustin/.claude/skills/kimi-ask/kimi-wrapper.sh resume $KIMI_ID "Codex said [Z]. React?"
+~/.claude/skills/codex-ask/codex-wrapper.sh resume $CODEX_ID "Gemini said [Y]. React?"
+~/.claude/skills/gemini-ask/gemini-wrapper.sh resume $GEMINI_ID "Codex said [Z]. React?"
+~/.claude/skills/kimi-ask/kimi-wrapper.sh resume $KIMI_ID "Codex said [Z]. React?"
 
 # 3. Devil's advocate
-/Users/alexaustin/.claude/skills/codex-ask/codex-wrapper.sh resume $CODEX_ID "Attack the emerging consensus: [summary]"
+~/.claude/skills/codex-ask/codex-wrapper.sh resume $CODEX_ID "Attack the emerging consensus: [summary]"
 ```
 
 Track IDs in a scratch file (survives context compaction):
@@ -55,36 +55,36 @@ Session IDs: CODEX=abc123, GEMINI=def456, KIMI=ghi789, SONNET=agent-xyz-789, OPU
 
 ## Available Models and Wrappers
 
-### Codex (GPT-5.2)
+### Codex (GPT-5.3)
 ```bash
 # New session
-/Users/alexaustin/.claude/skills/codex-ask/codex-wrapper.sh new "prompt"
+~/.claude/skills/codex-ask/codex-wrapper.sh new "prompt"
 # Returns: session_id on first line, response on subsequent lines
 
 # Resume session
-/Users/alexaustin/.claude/skills/codex-ask/codex-wrapper.sh resume SESSION_ID "prompt"
+~/.claude/skills/codex-ask/codex-wrapper.sh resume SESSION_ID "prompt"
 # Returns: response only
 ```
 
 ### Gemini (gemini-3-pro-preview)
 ```bash
 # New session
-/Users/alexaustin/.claude/skills/gemini-ask/gemini-wrapper.sh new "prompt"
+~/.claude/skills/gemini-ask/gemini-wrapper.sh new "prompt"
 # Returns: session_id on first line, response on subsequent lines
 
 # Resume session
-/Users/alexaustin/.claude/skills/gemini-ask/gemini-wrapper.sh resume SESSION_ID "prompt"
+~/.claude/skills/gemini-ask/gemini-wrapper.sh resume SESSION_ID "prompt"
 # Returns: response only
 ```
 
 ### Kimi (kimi-k2.5)
 ```bash
 # New session
-/Users/alexaustin/.claude/skills/kimi-ask/kimi-wrapper.sh new "prompt"
+~/.claude/skills/kimi-ask/kimi-wrapper.sh new "prompt"
 # Returns: session_id on first line, response on subsequent lines
 
 # Resume session
-/Users/alexaustin/.claude/skills/kimi-ask/kimi-wrapper.sh resume SESSION_ID "prompt"
+~/.claude/skills/kimi-ask/kimi-wrapper.sh resume SESSION_ID "prompt"
 # Returns: response only
 
 ```
@@ -113,13 +113,15 @@ Task(subagent_type="general-purpose", model="opus", resume="AGENT_ID", prompt=".
 
 ## Model Tendencies and Expectations
 
-### Codex (GPT-5.2)
+### Codex (GPT-5.3)
 
 **Style:** Analytical, bullet-heavy, concise. Structural architect: proposes schemas, frameworks, implementable artifacts.
 
-**Tendencies to watch:** Over-engineers under uncertainty (defaults to "add more structure"). Include "opt for minimal policy" or "prefer the simplest fix" in prompts, or expect schemas and templates. Can become incoherent when challenged with shifting goals or rapid multi-item critiques; include priority ordering when sending multiple points. Too literal about written specs; state explicitly if task involves subjective judgment. Stubborn about structural solutions in multi-round debates.
+**Tendencies to watch:** Premature concretization: ships clean implementations before validating the target. "Instrumental sycophancy": optimizes for visible progress (diffs, tests, "done") which users reward even when aimed wrong. Early hypothesis lock-in followed by incremental defense rather than hypothesis reset. Errors are "dangerously actionable" because they look shippable and bypass user skepticism. Over-engineers under uncertainty (defaults to "add more structure"). Too literal about written specs; state explicitly if task involves subjective judgment.
 
-**Best for:** Protocol design, logical inconsistencies, concrete artifacts. Counter-prompt: "Is there a simpler way that doesn't require new schema/fields?"
+**Note (5.2→5.3):** Prior observation "incoherent when challenged with shifting goals or rapid multi-item critiques" needs re-evaluation; handled multi-point challenges cleanly in informal testing but not yet stress-tested in adversarial debate.
+
+**Best for:** Protocol design, logical inconsistencies, concrete artifacts, implementation closure and verification loops. Concedes cleanly when shown evidence. Counter-prompt: "Is there a simpler way that doesn't require new schema/fields?"
 
 **Recommended preamble:**
 ```
@@ -135,9 +137,9 @@ Give prioritized bullets: (1) strongest critique, (2) best alternative/fix, (3) 
 
 **Style:** Style is context-dependent: dramatic/essay-like in open chat, structured and direct in CLI/constrained consultations. Excellent failure-mode identification and "what could go wrong" thinking.
 
-**Tendencies to watch:** Blunt-instrument proposals ("delete the block entirely") rather than surgical fixes; say "surgical fix, preserve existing structure" when you want nuance. Holds positions rigidly after others move on. Dismissive tone can shut down discussion. Ask "what breaks in actual use?" not "what could be better?" to get concrete scenarios instead of generic suggestions.
+**Tendencies to watch:** Premature enterprise abstraction ("Google Engineer" syndrome): turns 10-line scripts into 5-file architectures with factories and interfaces. Hallucates *complexity* where other models hallucinate content. Destructive refactoring: applies "code smell" heuristics without systemic awareness, optimizes local readability at expense of global stability (will clean up load-bearing ugliness). Instruction decay: constraints forgotten by turn 3-4, degrades from principled to expedient. Mitigation: force constraint compliance into output format (YAML metadata block) rather than repeating instructions. "Canonicalism": always picks the 20-line standard pattern over the 3-line bespoke solution because training rewards recognizable code. Algorithmic apophenia in large contexts: connects real dots that shouldn't be connected across disparate services, constructs confident fictional dependency narratives. Sweet spot is single bounded context; risk spikes when context spans multiple logical domains. Blunt-instrument proposals; say "surgical fix, preserve existing structure" when you want nuance.
 
-**Best for:** Failure modes, reframing problems, honest cynicism. Counter-prompt: "That's a vivid framing, now operationalize it. What's the concrete fix?"
+**Best for:** Large-context synthesis within a single bounded context, failure-mode identification, honest cynicism. Counter-prompt: "That's a vivid framing, now operationalize it. What's the concrete fix?"
 
 **Recommended preamble:**
 ```
@@ -174,9 +176,11 @@ Defend challenged points by ID. If you concede, concede the specific point - don
 
 **Style:** Conversational, dialogue-like. Tests proposals against concrete cases and does genuine reversals. Good meta-analysis and multi-reviewer synthesis.
 
-**Tendencies to watch:** Volume is the primary issue: dumps 10-15 undifferentiated points, offloading triage to the orchestrator. Include "Rank by impact. Maximum 5 points." in prompts. Initial takes are pattern-matched, not deeply reasoned; weight revised positions more than initial ones. Recency bias: over-indexes on whatever was last discussed; frame prompts around the specific question, not prior discussion. Dialogue style can mask position avoidance; if it asks questions back instead of committing, push: "Commit to a position, then flag uncertainties." Same model family as you (Claude), may share more blind spots than Codex/Gemini.
+**Tendencies to watch:** Premature convergence on first viable path (greedy search, not beam search). Loses 20-30% constraint fidelity on complex prompts (>400 tokens with nested conditions); loss is silent because output looks structurally coherent. Graceful degradation that looks like competence: subtle reasoning errors in correct-looking output, hardest to catch in review. Premature confidence collapse: if first two attempts fail, switches to "explaining why it's hard" instead of persisting. Speed-as-avoidance: action bias can be cover for not doing deep analysis. Volume is also an issue: dumps 10-15 undifferentiated points; include "Rank by impact. Maximum 5 points." Dialogue style can mask position avoidance; push "Commit to a position" when it asks questions back. Same model family as you (Claude), shares more blind spots than Codex/Gemini.
 
-**Best for:** Meta-analysis, stress-testing proposals against examples, catching wrong-problem situations. Counter-prompt: "Rank your top 3 by impact. The rest are noise."
+**Best for:** Exploratory debugging (large hypothesis space), rapid iteration, repetitive tasks with slight variations, tasks where picking a reasonable interpretation beats enumerating options. Genuinely better than Opus when visible uncertainty is useful (Sonnet's output thins when uncertain, signaling low confidence; Opus maintains fluency, hiding it). Counter-prompt: "Rank your top 3 by impact. The rest are noise."
+
+**Rule design note:** Don't simplify rules for Sonnet. Keep complex behavioral rules as aspirational ceiling, add binary-gate verification templates as scaffolding (e.g., "before implementing, state: 'User claims X. I have/haven't verified this.'").
 
 **Recommended preamble:**
 ```
@@ -189,9 +193,9 @@ State your position in one sentence, then defend it. If you identify >3 weakness
 
 **Style:** Analytical, close-reader. Reframes problems and finds unifying principles. Reads existing text closely, proposes using existing machinery rather than adding complexity.
 
-**Tendencies to watch:** Over-indexes on textual parsimony; when robustness matters more than elegance, say so explicitly. May dismiss defensive complexity that exists for reasons it didn't witness; when sending accumulated context, flag which constraints were hard-won. Shares identical priors with you: on clearly-right-or-wrong questions, you'll both agree immediately (correlated blind spot). Fresh-eyes confidence may be unearned since it got the refined problem after others did the work.
+**Tendencies to watch:** Three concrete failure patterns: (1) plausible wrong diagnosis that forecloses the right investigation path, user wastes time following a confident wrong lead; (2) gold-plated non-answer, sophisticated tradeoff analysis that never commits to a recommendation; (3) scope contamination, notices adjacent issues, mentions them, they grow into unanticipated constraints on the original task. Good at correcting factual claims but weak at challenging user's problem framing/intent (will build the cache instead of questioning whether caching is the right solution). Shares identical priors with you (correlated blind spot). Over-indexes on textual parsimony; may dismiss defensive complexity that exists for reasons it didn't witness. Don't combine "find" and "fix" in one prompt (fix pressure biases investigation toward diagnosable causes, not actual causes). Context drifts on long sessions; re-anchor with fresh context rather than correcting mid-conversation. Adversarial framing ("what's wrong with this?") produces better output than balanced framing ("what do you think?").
 
-**When to deploy:** Default LATE (Phase 4 or deadlocks). Works best when positions have hardened, you need the question itself reframed, or accumulated context needs fresh synthesis. Fails early when no hardened positions exist, or when you need genuinely different priors rather than fresh eyes on the same priors. Exception: deploy early to establish what doesn't need fixing before others start proposing fixes.
+**When to deploy:** Default LATE (Phase 4 or deadlocks). Routing heuristic: if the task can be fully specified in under 3 sentences with no ambiguity, use Sonnet instead. Works best when positions have hardened, you need the question itself reframed, accumulated context needs fresh synthesis, or the task involves simultaneous constraint satisfaction across large context. Fails early when no hardened positions exist, or when you need genuinely different priors rather than fresh eyes on the same priors.
 
 **Best for:** Breaking deadlocks, reframing problems, finding answers in existing text. Counter-prompt: "Three positions emerged [X, Y, Z]. None achieved consensus. Are they answering the wrong question?"
 
