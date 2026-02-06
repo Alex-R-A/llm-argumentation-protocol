@@ -3,6 +3,9 @@
 copy_codex.sh
 gemini_copy.sh
 claude_copy.sh
+kimi_copy.sh
+roundrobin_copy.sh
+copy_all.sh
 codex-ask/deliberations/*.json
 gemini-ask/deliberations/*.json
 claude-ask/deliberations/*.json
