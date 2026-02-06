@@ -176,9 +176,37 @@ Continue from iteration N. [specific request]
 
 Kimi is a pure API with no filesystem or network access. Paste relevant content directly into prompts rather than referencing paths. URL citations from Kimi are unverifiable and count as `kimi-unverified` claims, not textual evidence. Only orchestrator-verified URL quotes (fetched and confirmed) qualify as evidence.
 
-**Content inclusion:** Since Kimi cannot read files, include relevant code snippets, config excerpts, and constraint text directly in prompts. For small, specific excerpts (a few lines) quote directly. For larger content, summarize and include key sections verbatim.
+**Content inclusion:** Since Kimi cannot read files, include relevant code snippets, config excerpts, and constraint text directly in prompts. Kimi supports 200K+ token context (kimi-unverified), so you can paste full files up to ~3k lines without aggressive excerpting.
 
-**Line number citations:** When including code, use `nl -ba` or `rg -n` to add line numbers before pasting. This enables precise citations.
+**File format for prompts:** Use this structure for each file block:
+```
+### File: src/utils.py (Lines 1-45 of 120)
+Language: python
+Purpose: Database connection utilities
+[excerpt reason if truncated: e.g., "error occurs at line 32"]
+
+ 1 | import os
+ 2 | from typing import Optional
+...
+45 |     return conn
+```
+
+Key elements: line range with total (`Lines X-Y of TOTAL`) prevents Kimi from assuming an excerpt is the whole file. Language hint, purpose annotation, and excerpt reason focus attention. Use `nl -ba` or `rg -n` to generate line numbers.
+
+**For multi-turn (resume calls):** After first full paste, switch to diff format to save tokens:
+```
+### Update to src/utils.py (Lines 28-35 changed)
+-    timeout = 30
++    timeout = 60
+```
+
+**For large files (>500 lines):** Use skeleton + relevant section:
+```
+[File header/imports (lines 1-30)]
+[Function signatures/class definitions (skeleton view)]
+[=== Relevant section with full line numbers ===]
+[Footer/error handling context if applicable]
+```
 
 **Kimi role:** Kimi is advisory only, it deliberates on content provided to it. Never ask Kimi to perform actions. You apply all edits yourself after deliberation concludes.
 

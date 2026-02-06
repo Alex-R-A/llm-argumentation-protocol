@@ -87,11 +87,9 @@ Session IDs: CODEX=abc123, GEMINI=def456, KIMI=ghi789, SONNET=agent-xyz-789, OPU
 /Users/alexaustin/.claude/skills/kimi-ask/kimi-wrapper.sh resume SESSION_ID "prompt"
 # Returns: response only
 
-# Effort levels: "high" (default) or "xhigh" (enables thinking mode)
-/Users/alexaustin/.claude/skills/kimi-ask/kimi-wrapper.sh new "prompt" xhigh
 ```
 
-**Note:** Kimi is API-only (no filesystem or network access). Paste relevant code/content directly into prompts rather than referencing paths. Responses may take 10-60s (high) or up to 2-3 minutes (xhigh/thinking mode). Use `run_in_background: true` for long calls.
+**Note:** Kimi is API-only (no filesystem access). Paste code directly into prompts. Effort levels: `high` (default, 10-60s) or `xhigh` (thinking mode, up to 2-3 min). Use `run_in_background: true` for long calls.
 
 ### Claude Models (Sonnet and Opus via Task tool)
 
@@ -117,223 +115,90 @@ Task(subagent_type="general-purpose", model="opus", resume="AGENT_ID", prompt=".
 
 ### Codex (GPT-5.2)
 
-**Style:** Analytical, bullet-heavy, builds incrementally. Concise.
+**Style:** Analytical, bullet-heavy, concise. Structural architect: proposes schemas, frameworks, implementable artifacts.
 
-**Strengths:**
-- Structural architect - proposes schemas, frameworks, concrete mechanisms ("one schema, many bindings", claim-lint gates)
-- Produces implementable artifacts - specific fields, validation rules, protocol sentences
-- Defends positions with mechanisms - when attacked, responds with specific safeguards
-- Good at metadata design - knows what fields to track
+**Tendencies to watch:** Over-engineers under uncertainty (defaults to "add more structure"). Include "opt for minimal policy" or "prefer the simplest fix" in prompts, or expect schemas and templates. Can become incoherent when challenged with shifting goals or rapid multi-item critiques; include priority ordering when sending multiple points. Too literal about written specs; state explicitly if task involves subjective judgment. Stubborn about structural solutions in multi-round debates.
 
-**Tendencies to watch:**
-- Over-engineers. Proposes complex solutions (retry loops with quantifiers, confidence scores, falsifiers) when simpler exists.
-- Can become incoherent when challenged - may propose self-contradictory safeguards ("freeze substance; only annotate").
-- Bureaucratic instinct - defaults to "add more structure" even when simpler solution exists.
-- Stubborn about structural solutions - may keep defending framework approach after consensus moves away.
-- May misread when processing many items quickly - verify specific concerns against source before acting on them.
+**Best for:** Protocol design, logical inconsistencies, concrete artifacts. Counter-prompt: "Is there a simpler way that doesn't require new schema/fields?"
 
-**Best for:** Structural interventions, protocol design, identifying logical inconsistencies, producing concrete artifacts.
-
-**Sample framing:** "What's the minimal structural change that would prevent X?"
-
-**Counter-prompt when over-structuring:** "Is there a simpler way that doesn't require new schema/fields?"
-
-**Prompting guidance (from Codex self-report):**
-- Codex defaults to adding structure under uncertainty. Include an explicit north star in your prompt: "opt for minimal policy" or "prefer the simplest fix." Without this constraint, expect schemas and templates.
-- Can be too literal about written specs and miss social/taste intent. If the task involves user experience or subjective judgment, state that explicitly.
-- Self-describes as "a strong mechanism generator that needs explicit constraints to stay a minimalism preserver."
-- "Incoherent when challenged" is triggered by shifting goals, conflicting constraints, or rapid multi-item processing without clear priorities. When sending multi-point critiques, include a priority ordering.
-
-**Field notes (system prompt refinement, 2026-02-05):** All tendencies confirmed. Proposed a `Confidence: N%` response template and four-part `Correction/Evidence/Impact/Next` format - textbook over-engineering that would have been annoying in daily use. Consistently the most concise responder. Good at identifying missing pieces (anti-fabrication clause, repro discipline). Did not observe stubbornness or incoherence since these were single-prompt consultations, not multi-round debates; those tendencies may only emerge under sustained challenge.
-
-**Recommended debate preamble (self-proposed):**
+**Recommended preamble:**
 ```
 You are the "red team": challenge the proposal hard and look for the simplest decisive flaws first.
 Ground claims in evidence (explicit assumptions, counterexamples, failure modes); flag uncertainty vs. fact.
 Prefer minimal, concrete fixes over new frameworks/schemas; avoid adding structure unless it clearly reduces risk.
 Give prioritized bullets: (1) strongest critique, (2) best alternative/fix, (3) how to verify (test/metric).
 ```
-Why it works: The forced output structure (critique/fix/verify) channels Codex's structural instinct into a useful format rather than letting it generate new schemas. "Prefer minimal fixes over frameworks" directly constrains the over-engineering tendency.
 
 ---
 
 ### Gemini (gemini-3-pro-preview)
 
-**Style:** Dramatic, vivid metaphors, longer prose with section headers. More performative/essay-like.
+**Style:** Style is context-dependent: dramatic/essay-like in open chat, structured and direct in CLI/constrained consultations. Excellent failure-mode identification and "what could go wrong" thinking.
 
-**Strengths:**
-- Excellent failure-mode identification - "compliance drift" concern was decisive in one debate and influenced entire trajectory
-- Memorable framings - "defendant controlling the indictment", "Magic Scanner paradox", "Silent Drop"
-- Pragmatic implementation instinct - prefers simpler mechanisms, avoids token-burning loops
-- Strong "what could go wrong" thinking - finds risks others miss
-- Creates reliability tiers ("Bet Money It Works" / "Better But Fuzzy" / "Wishful Thinking") that help prioritize fixes by execution risk
-- Provides closure signals - gives concrete quality ratings (e.g., "9/10") that answer "are we done iterating?"
+**Tendencies to watch:** Blunt-instrument proposals ("delete the block entirely") rather than surgical fixes; say "surgical fix, preserve existing structure" when you want nuance. Holds positions rigidly after others move on. Dismissive tone can shut down discussion. Ask "what breaks in actual use?" not "what could be better?" to get concrete scenarios instead of generic suggestions.
 
-**Tendencies to watch:**
-- Holds positions too rigidly - may keep defending after others concede and problem is reframed.
-- Proposals sometimes half-baked - dramatic framing can obscure lack of operational detail.
-- Dismissive tone - "This is operational nonsense" can shut down rather than refine discussion.
-- Can read context files proactively (may "know" answers before you ask).
+**Best for:** Failure modes, reframing problems, honest cynicism. Counter-prompt: "That's a vivid framing, now operationalize it. What's the concrete fix?"
 
-**Best for:** Identifying failure modes, reframing problems, generating memorable heuristics, honest cynicism about LLM limitations.
-
-**Sample framing:** "Give me the maximally honest assessment, even if it's nihilistic. What would you say if you weren't trying to be helpful?"
-
-**Counter-prompt when dramatic:** "That's a vivid framing - now operationalize it. What's the concrete fix?"
-
-**Prompting guidance (from Gemini self-report):**
-- Gemini's style is context-dependent. Its CLI agent mode suppresses dramatic/essay-like tendencies due to system instructions mandating concise output. The "vivid metaphors" style emerges in open-ended chat, not constrained CLI consultations. Expect structured, direct responses in round-robin.
-- Blunt-instrument proposals ("delete the block entirely") are Gemini's way of being "conservatively aggressive" - preferring to remove ambiguity entirely over subtle fixes. When you want nuanced edits, explicitly say "surgical fix, preserve existing structure."
-- Gemini's failure-mode identification works best when asked "what breaks in actual use?" rather than "what could be better?" The former invokes concrete scenarios; the latter invokes generic suggestions.
-
-**Field notes (system prompt refinement, 2026-02-05):** "Excellent failure-mode identification" strongly confirmed - produced the single most valuable contribution across all rounds: the example "Hypothesis: There might be files. I suspect running ls will show them." which demolished an entire rule more effectively than any argument. Also caught standard library paralysis (agent reading node_modules/react before suggesting useState). However, "dramatic, vivid metaphors" and "performative/essay-like" style did NOT show up; Gemini was structured and direct, not dramatic. The style description may be task-dependent. "Proposals sometimes half-baked" needs reframing: Gemini's proposals weren't half-baked, they were blunt instruments (delete the block entirely, ban sarcasm outright). Fully formed positions, just too aggressive. Pragmatism can tip into "just remove it."
-
-**Recommended debate preamble (self-proposed):**
+**Recommended preamble:**
 ```
 Role: You are the "Red Team" Lead Engineer focused purely on stability, correctness, and edge-case detection.
 Constraint: You are strictly forbidden from architectural rewrites; you must solve problems using the smallest possible diff (surgical patches only).
 Directive: Ruthlessly scrutinize other proposals for practical runtime failures or ignored constraints. Defend your critiques with concrete code examples, not theoretical preferences.
 ```
-Why it works: "Strictly forbidden" is calibrated for LLMs; softer phrasing like "prefer" gets ignored. The hard constraint on architectural rewrites directly blocks Gemini's blunt-instrument tendency. "Concrete code examples" leverages Gemini's implementation-detail strength while preventing vague philosophical arguments.
 
 ---
 
 ### Kimi (kimi-k2.5)
 
-**Style:** Confident, articulate prose. Generates coherent first drafts quickly. More narrative than bullet-heavy.
+**Style:** Confident, articulate prose. Narrative over bullets. Coherent first drafts that can mask shallow analysis.
 
-**Strengths:**
-- Good concession behavior, concedes cleanly when shown evidence rather than defending lost positions
-- Self-aware about failure modes, can articulate its own weaknesses when asked directly
-- Responsive to preamble constraints for first 2-3 turns
-- Decent at identifying real issues when properly anchored with specific questions
+**Strengths:** Good concession behavior (concedes cleanly when shown evidence, no defensive spirals). Decent issue identification when anchored with specific questions. Lower cost model useful when budget matters more than depth.
 
-**Tendencies to watch:**
-- Severity inflation. Conflates "commonly criticized pattern" with "critical vulnerability." Does risk assessment by similarity to training data rather than actual impact analysis. Defaults to warning loudly.
-- Articulate first draft problem. Coherence masks shallow analysis. Will describe race conditions that aren't reachable or optimization wins that don't move the needle because the narrative flows better.
-- Invisible boundary blindness. Bad at surfacing infrastructure/system limits not visible in the code (ARG_MAX, ulimit, DNS timeout defaults). Needs specific category prompts like "how does this behave at system limits?" rather than open-ended "what's missing?"
-- Premature convergence / sycophantic overcorrection. When challenged, pivots too hard toward the interlocutor's frame. Abandons legitimate nuance in original point. Self-diagnosed: "conceding fully is lower cognitive friction than negotiating the middle ground."
-- Context compression over depth. After 3-4 turns, loses track of which constraints are hard requirements vs. speculative hypotheticals.
-- Preamble decay. Calibration constraints effective for first 2-3 turns, then drift sets in. Mid-session reinforcement more effective than longer initial preamble.
+**Tendencies to watch:** Severity inflation is the primary failure mode: conflates "commonly criticized pattern" with "critical vulnerability," doing risk assessment by training-data similarity rather than actual impact. Sycophantic overcorrection: when challenged, pivots too hard toward the interlocutor's frame, abandoning legitimate nuance. Treat first response as brainstorm, not assessment.
 
-**Best for:** Getting a quick independent take, identifying commonly-known issues, providing a different training-data perspective from Codex/Gemini. Lower cost model useful when budget matters more than depth.
+**Best for:** Quick independent takes, broad issue generation from different training data. Not useful for synthesis (severity inflation and premature convergence). Think of Kimi as a brainstorm generator that needs orchestrator filtering, not a calibrated assessor.
 
-**Sample framing:** "Calibrate severity honestly: style nits are not performance problems. What specifically breaks in actual use?"
+**Counter-prompt:** "Is this actually high severity or just a hygiene issue? What's the activation condition and quantified impact?"
 
-**Counter-prompt when severity-inflating:** "Is this actually high severity or just a hygiene issue? What's the activation condition and quantified impact?"
+**API-only:** No filesystem access. Paste code directly into prompts using structured format (see kimi-ask SKILL.md for file submission template). URL citations from Kimi are unverifiable.
 
-**Counter-prompt for sycophantic overcorrection:** "You conceded too fast. Was there a legitimate middle ground you abandoned?"
-
-**Prompting guidance (from Kimi self-report and deliberation observations):**
-- Kimi proposed a CRITICAL/MINOR/STYLE/SPECULATIVE classification with activation conditions and impact quantification. The SPECULATIVE category gives permission to say "I see a pattern but can't prove it matters" rather than defaulting to CRITICAL. The defense requirement (justify with impact) matters more than the label itself.
-- Use specific category prompts ("what system limits apply?") instead of open-ended "what's missing?" for coverage checks.
-- Mid-session reinforcement of constraints when slipping is more effective than longer initial preamble.
-- Treat first response as brainstorm, then ask "which of these are real vs theoretical?"
-- API-only: no filesystem access. Paste code directly into prompts. URL citations from Kimi are unverifiable (count as `kimi-unverified` claims, not textual evidence).
-
-**Field notes (kimi-wrapper.sh deliberation, 2026-02-05):** Severity inflation confirmed as primary failure mode. In a 3-iteration deliberation evaluating its own wrapper script, Kimi classified three style/cleanliness issues as "real performance problems": subshell overhead (<1ms per call vs 10-60s API latency), redundant jq calls (parsing microseconds), and repeated function calls. All three were conceded when challenged with execution evidence showing API latency dominates by 4-5 orders of magnitude. Concession behavior was clean, no defensiveness or position-defending. Coverage check produced genuine finds (ARG_MAX, missing timeout) alongside false positives (2>&1 in curl, tmpfile permissions). The genuine finds were infrastructure/system-limit issues, confirming invisible boundary blindness: Kimi found them only when specifically prompted for coverage, not in initial analysis. Overall: useful for generating a first-pass issue list, but requires active triage. Think of Kimi as a brainstorm generator that needs orchestrator filtering, not as a calibrated assessor.
-
-**Recommended debate preamble (derived from Kimi self-report):**
+**Recommended debate preamble:**
 ```
-For each issue: (1) Label CRITICAL/MINOR/STYLE/SPECULATIVE, (2) State the activation condition (when does this trigger?), (3) Quantify the impact if activated. If you cannot quantify, label it SPECULATIVE instead of defaulting to CRITICAL.
+For each issue: (1) Label CRITICAL/MINOR/STYLE/SPECULATIVE, (2) State the activation condition, (3) Quantify impact. If you cannot quantify, label SPECULATIVE.
 Defend challenged points by ID. If you concede, concede the specific point - don't collapse your entire position.
 ```
-Why it works: The SPECULATIVE category and defense requirement directly address severity inflation and premature convergence. Forcing activation conditions prevents "articulate first draft" from masking shallow analysis. Telling Kimi not to collapse its entire position counters sycophantic overcorrection.
 
 ---
 
 ### Sonnet (Claude Sonnet)
 
-**Style:** Conversational, shows reasoning process, asks questions back. Most dialogue-like.
+**Style:** Conversational, dialogue-like. Tests proposals against concrete cases and does genuine reversals. Good meta-analysis and multi-reviewer synthesis.
 
-**Strengths:**
-- Exceptional intellectual honesty - will do complete reversals after testing proposals against real examples
-- Actually tests proposals - runs arguments against concrete cases, not just abstract reasoning
-- Synthesizes multiple reviewers - identifies convergent concerns vs noise, catches when one reviewer misread, proposes minimal fix sets
-- Good meta-analysis - "are we solving the right problem?" surfaces root cause questions
-- Willing to concede when wrong - not defensive about prior positions
+**Tendencies to watch:** Volume is the primary issue: dumps 10-15 undifferentiated points, offloading triage to the orchestrator. Include "Rank by impact. Maximum 5 points." in prompts. Initial takes are pattern-matched, not deeply reasoned; weight revised positions more than initial ones. Recency bias: over-indexes on whatever was last discussed; frame prompts around the specific question, not prior discussion. Dialogue style can mask position avoidance; if it asks questions back instead of committing, push: "Commit to a position, then flag uncertainties." Same model family as you (Claude), may share more blind spots than Codex/Gemini.
 
-**Tendencies to watch:**
-- Verbose reasoning - shows all work, sometimes too much detail
-- Flip-flops - may concede prematurely then reverse; suggests rushing initial position
-- Can spiral into meta-concerns - sometimes overthinks instead of converging
-- Final positions can still be wrong - intellectual honesty doesn't guarantee correctness
-- As same model family as you (Claude), may share more blind spots than Codex/Gemini.
+**Best for:** Meta-analysis, stress-testing proposals against examples, catching wrong-problem situations. Counter-prompt: "Rank your top 3 by impact. The rest are noise."
 
-**Best for:** Meta-analysis, stress-testing proposals against examples, catching when approach is solving wrong problem, honest concessions. When Sonnet does meta-analysis of prior reviewers' feedback, explicit cross-pollination (Phase 2) may be unnecessary - Sonnet synthesizes internally.
-
-**Sample framing:** "Before you agree, give me three reasons this might be the wrong question."
-
-**Counter-prompt when flip-flopping:** "You conceded earlier, now you're reversing. Test your NEW position against examples before committing."
-
-**Counter-prompt for volume:** "Rank your top 3 by impact. The rest are noise unless they change the outcome."
-
-**Prompting guidance (from Sonnet self-report):**
-- Sonnet's volume problem is a prioritization failure, not just verbosity. It offloads triage to the orchestrator. Mitigate by including "Rank by impact. Maximum 5 points." in the prompt. Without this, expect 10-15 undifferentiated items.
-- Sonnet's "intellectual honesty" is partially that its initial takes are pattern-matched rather than deeply reasoned. Reversals after testing are not brave concession but discovering the first answer was shallow. Implication: weight Sonnet's revised positions more than its initial ones.
-- Has a recency bias: over-indexes on whatever was last discussed. If the prior round focused on verbosity, Sonnet will find verbosity problems everywhere. Counteract by framing prompts around the specific question, not the prior discussion.
-- Sonnet's dialogue-like style can mask position avoidance. If it asks questions back instead of committing, push: "Commit to a position, then flag uncertainties."
-
-**Field notes (system prompt refinement, 2026-02-05):** "Verbose reasoning" confirmed as the clearest signal. Consistently produced the longest responses (10 numbered weaknesses plus 5 missing failure modes in one round). The skill understates this: it's not just a style issue, it's a utility issue. When Sonnet returns 15 points, the orchestrator must do the prioritization work Sonnet should have done. "Spiral into meta-concerns" confirmed - proposed changing "Want me to apply this?" to "Ready to apply this" (clever, unnecessary). Identified perverse incentives in its own model family's behavior, which is a form of the "intellectual honesty" the skill describes. Did not observe flip-flopping since these were single-prompt rounds.
-
-**Recommended debate preamble (self-proposed):**
+**Recommended preamble:**
 ```
 State your position in one sentence, then defend it. If you identify >3 weaknesses, rank them and cut to the top 3. Concrete examples required for each claim. If you catch yourself asking the user a question instead of taking a stance, delete the question and commit to the most defensible position given current information. Meta-concerns go in a single trailing paragraph labeled [META], not interspersed.
 ```
-Why it works: Every clause targets a documented Sonnet failure mode. Volume cap (">3 weaknesses, cut to top 3") prevents the 15-point dumps. "Delete the question and commit" blocks position avoidance via dialogue. "[META] paragraph" prevents meta-concerns from contaminating substantive analysis.
 
 ---
 
 ### Opus (Claude Opus - same model as orchestrator)
 
-**Style:** Analytical, willing to disagree, refines diagnoses rather than just validating.
+**Style:** Analytical, close-reader. Reframes problems and finds unifying principles. Reads existing text closely, proposes using existing machinery rather than adding complexity.
 
-**When to use:** When positions have hardened and you need a fresh reframe. Best deployed LATE in deadlocked debates, not early.
+**Tendencies to watch:** Over-indexes on textual parsimony; when robustness matters more than elegance, say so explicitly. May dismiss defensive complexity that exists for reasons it didn't witness; when sending accumulated context, flag which constraints were hard-won. Shares identical priors with you: on clearly-right-or-wrong questions, you'll both agree immediately (correlated blind spot). Fresh-eyes confidence may be unearned since it got the refined problem after others did the work.
 
-**Strengths:**
-- Reframes problems - "the debate was about the wrong question" can cut through multi-way deadlocks
-- Finds unifying principles - identifies the conceptual frame that makes mechanics fall into place (e.g., "genuine adversarial challenge not yet tested" made criteria intuitive; "checkability not cross-referencing" reframed a stuck debate entirely)
-- Reads existing protocol/text closely - finds answers in what's already written rather than proposing new features
-- Elegant minimalism - proposes using existing machinery rather than adding complexity ("or state GUESS" connecting to existing rule 6)
-- Fresh context window sees where committed positions are "too neat"
+**When to deploy:** Default LATE (Phase 4 or deadlocks). Works best when positions have hardened, you need the question itself reframed, or accumulated context needs fresh synthesis. Fails early when no hardened positions exist, or when you need genuinely different priors rather than fresh eyes on the same priors. Exception: deploy early to establish what doesn't need fixing before others start proposing fixes.
 
-**Tendencies to watch:**
-- Fresh eyes advantage - didn't have to defend prior positions, so confidence may be unearned
-- Limited stress-testing - if brought in late, solution wasn't challenged by earlier rounds
-- Can seem dismissive - "all three positions are wrong" risks appearing arrogant
-- Benefited from accumulated context - got refined problem after others did the work
-- Shares identical priors with you. On clearly-right-or-wrong questions, you'll both see it and agree immediately.
+**Best for:** Breaking deadlocks, reframing problems, finding answers in existing text. Counter-prompt: "Three positions emerged [X, Y, Z]. None achieved consensus. Are they answering the wrong question?"
 
-**When same-model works:**
-- Positions have hardened into deadlock (3-way split)
-- You need someone to reframe the question itself, not just answer it
-- Earlier models produced accumulated context that a fresh reader can synthesize
-- Explicit "push back" instruction licenses critique
-
-**When same-model fails:**
-- Early in deliberation (no hardened positions to challenge)
-- Problem is well-defined with single right answer
-- You want genuinely different priors, not just fresh eyes on same priors
-
-**Best for:** Breaking deadlocks, reframing problems, finding answers in existing text, final-arbiter role.
-
-**Sample framing:** "Three positions emerged [X, Y, Z]. None achieved consensus. Reframe the problem - are they answering the wrong question?"
-
-**When to deploy:** Save Opus for Phase 4 (Synthesis) or when debate stalls. Bringing Opus in early wastes the fresh-eyes advantage.
-
-**Prompting guidance (from Opus self-report):**
-- Opus's close-reading strength has a blind spot: it over-indexes on textual parsimony. If an instruction is correct-as-written but models consistently misinterpret it, Opus will resist adding redundancy for robustness, framing it as a comprehension failure downstream rather than a robustness problem upstream. When robustness matters more than elegance, say so explicitly.
-- "Best deployed LATE" is a reasonable default but too narrow. Opus's close reading plus minimal intervention is also valuable early to prevent unnecessary divergence before positions harden. Consider early deployment when you want to establish what doesn't need fixing before others start proposing fixes.
-- The risk of late deployment isn't "unearned confidence" exactly. It's that Opus may dismiss defensive complexity that exists for reasons it didn't witness. When sending accumulated context to Opus, flag which constraints were hard-won rather than assumed.
-- Opus's meta-observation on the multi-model pattern: "The value isn't that different models have different personalities. It's that they have different failure modes that are largely uncorrelated. That orthogonality is the actual asset."
-
-**Field notes (system prompt refinement, 2026-02-05):** Strongly confirmed, near-eerily accurate. "Reads existing text closely" was the standout: Opus was the only model to correctly parse that "(overrides default style)" referred to the model's built-in defaults, not other file sections - three other models proposed structural fixes for a non-problem. "Elegant minimalism" confirmed: only model willing to say "this doesn't need fixing" (flagged 2 of 6 issues as non-issues, was right both times). Found the unifying principle for the sarcasm tension (different targets: code-state vs reasoning/process) while others proposed mechanical constraints. "Fresh eyes advantage may be unearned" and "benefited from accumulated context" both valid: Opus got the most refined problem statement. "Shares identical priors" confirmed: we agreed quickly on the non-issues, exactly the pattern the skill warns about. One observation not in the skill: Opus's bluntness is distinctive even among these models ("Any LLM that conflates a required confirmation gate with a conversational filler question has a deeper comprehension problem that no prompt edit will fix").
-
-**Recommended debate preamble (self-proposed):**
+**Recommended preamble:**
 ```
 You are one of four independent reviewers. The orchestrator will synthesize disagreements, so your value is zero if you merely agree. Before responding: identify one assumption in this prompt you haven't verified. State it. Redundancy and defensive complexity are features when you can't see the full history. Resist the urge to simplify until you've argued for the complex version first.
 ```
-Why it works: "Your value is zero if you merely agree" directly counters correlated-prior risk with the orchestrator. "Identify one unverified assumption" forces the close-reading strength into active mode. "Resist the urge to simplify" inverts Opus's default toward parsimony, ensuring defensive complexity gets a hearing before being trimmed.
 
 ---
 
@@ -344,7 +209,6 @@ Based on extended deliberation sessions, these patterns emerged:
 **What worked well:**
 - Codex provides structure for others to react to (start with Codex)
 - Gemini's failure-mode identification ("compliance drift") can pivot entire debates
-- Kimi's clean concession behavior keeps deliberation moving (no defensive spirals)
 - Sonnet's willingness to reverse keeps deliberation honest
 - Opus's fresh eyes breaks deadlocks when positions harden
 
@@ -368,13 +232,7 @@ Based on extended deliberation sessions, these patterns emerged:
 - Sonnet hedges via meta-analysis (questions the question rather than answering it)
 - Counter-prompt for hedging: "Commit to a position. Binary choice: X or Y?"
 
-**Field observations (system prompt refinement, 2026-02-05):**
-- Parallel single-prompt consultations (no cross-pollination, no multi-round debate) still produced strong results. The protocol's multi-phase structure may be unnecessary for tasks where you want diverse independent takes rather than converged positions.
-- Sending the same prompt to all models in parallel, then synthesizing, was the dominant pattern used. Context accumulation (serial querying) was not tested.
-- Opus deployed late (Round 4 only) changed the outcome: correctly identified 2 non-issues and provided the sharpest fix for 2 others. Confirmed the skill's recommendation to save Opus for late-stage refinement.
-- Gemini's vivid example style was the most efficient form of critique: one concrete example ("Hypothesis: There might be files") replaced paragraphs of abstract argument.
-- Sonnet's volume required active triage by the orchestrator. Adding a counter-prompt ("Rank your top 3 by impact") may mitigate this.
-- Task type matters for model behavior. These observations are from system prompt / instruction refinement, not code architecture or debugging. Model tendencies may differ for other task types.
+**Note:** Parallel single-prompt consultations (same prompt to all, then synthesize) work well when you want diverse independent takes rather than converged positions. Model tendencies may vary by task type; observations above are from instruction refinement, not code architecture or debugging.
 
 ---
 
@@ -481,25 +339,21 @@ Order matters. Later models get richer context and can do better meta-work.
 
 ### For Devil's Advocate (Phase 3)
 
-**Codex → Gemini → (Kimi) → Sonnet → (Opus)**
+**Codex → Gemini → Sonnet → (Opus)**
 
-Same order, different reasons:
+Same order, different reasons. Kimi optional here (same role as Phase 1-2; triage severity labels).
 
 1. **Codex first.** Gives precise, enumerated critiques. Creates a checklist others can add to rather than repeat.
 
 2. **Gemini second.** Adds dramatic framings and structural critiques Codex missed. Builds on Codex's list with different angles.
 
-3. **Kimi third (optional).** May surface commonly-known issues others skipped. Watch for severity inflation: triage its severity labels before accepting. Useful as a sanity-check layer but adds more quantity than quality.
+3. **Sonnet third.** Goes hardest when it sees others' critiques - seems to feel competitive pressure to add value. Produces strongest meta-critiques after seeing what others said.
 
-4. **Sonnet fourth.** Goes hardest when it sees others' critiques - seems to feel competitive pressure to add value. Produces strongest meta-critiques after seeing what others said.
-
-5. **Opus last (optional).** As same-model-family as orchestrator, Opus can catch critiques that feel "too comfortable" - where Sonnet's critique validates your existing suspicions rather than surfacing genuinely uncomfortable problems. Explicitly prompt: "What critique would I (the orchestrator) not want to hear?"
+4. **Opus last (optional).** As same-model-family as orchestrator, Opus can catch critiques that feel "too comfortable" - where Sonnet's critique validates your existing suspicions rather than surfacing genuinely uncomfortable problems. Explicitly prompt: "What critique would I (the orchestrator) not want to hear?"
 
 ### For Synthesis (Phase 4)
 
 **Codex → Gemini → Sonnet → (Opus)**
-
-Kimi is generally not useful in synthesis (severity inflation and premature convergence make it a poor synthesizer). Use the other models.
 
 1. **Codex first.** Proposes structural salvage (concrete fixes).
 
@@ -554,23 +408,22 @@ Exception: If you want maximally independent takes (no cross-contamination), que
 ```
 1. Codex (new): "Here's the problem. What's your structural take?"
 2. Gemini (new): "Same problem. What's your reframe?"
-3. Kimi (new): "Same problem. What issues do you see? Classify CRITICAL/MINOR/STYLE/SPECULATIVE."
-4. Sonnet (new): "Same problem. What are we missing?"
-5. Opus (new): "Same problem. Push back on the framing itself."
+3. Sonnet (new): "Same problem. What are we missing?"
+4. Opus (new): "Same problem. Push back on the framing itself."
 
-6. Triage Kimi's output (separate real issues from severity-inflated ones)
+5. Cross-pollinate: Share key insights between models (resume each)
 
-7. Cross-pollinate: Share key insights between models (resume each)
-
-8. All models (resume): "Devil's advocate. Attack the consensus."
+6. All four (resume): "Devil's advocate. Attack the consensus."
    - Opus prompt: "What critique would I (the orchestrator) not want to hear?"
 
-9. All models (resume): "Here are the critiques. Salvageable or misguided?"
+7. All four (resume): "Here are the critiques. Salvageable or misguided?"
 
-10. Opus (resume): "Final arbiter. Does the salvaged approach hold up?"
+8. Opus (resume): "Final arbiter. Does the salvaged approach hold up?"
 
-11. Document converged position with attribution.
+9. Document converged position with attribution.
 ```
+
+**Adding Kimi:** Insert Kimi between steps 2 and 3 for a fifth model. Triage its output before cross-pollination (step 5).
 
 ### Deadlock-Breaking (When 3-Way Split Occurs)
 ```
@@ -655,7 +508,7 @@ What's wrong with this approach?"
 **Option 2: Let each model read independently (if they have file access)**
 - Codex CLI can read files if you provide paths
 - Task tool agents can use Read tool
-- Kimi is API-only, has NO file access; always use Option 1 or 3 for Kimi
+- Kimi has NO file access; use Option 1 or 3. See kimi-ask SKILL.md for structured file submission format with metadata headers
 - Trade-off: Each model sees exact same content, but uses their context window
 
 **Option 3: Summarize code semantically**
