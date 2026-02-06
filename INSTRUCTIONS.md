@@ -7,7 +7,7 @@
 - At least one consultee installed and authenticated:
   - [Codex CLI](https://github.com/openai/codex) for `codex-ask`
   - [Gemini CLI](https://github.com/google-gemini/gemini-cli) for `gemini-ask`
-  - [Moonshot API key](https://platform.moonshot.cn/) for `kimi-ask`: `export MOONSHOT_API_KEY=your-key-here`
+  - [Moonshot API key](https://platform.moonshot.ai/console) for `kimi-ask`: `export MOONSHOT_API_KEY=your-key-here`
 
 ## Setup
 
