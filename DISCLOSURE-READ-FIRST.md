@@ -1,6 +1,6 @@
 # Disclosure: Shell Script Usage
 
-These skills invoke external LLM CLIs (Codex, Gemini) via bash wrapper scripts rather than through MCP (Model Context Protocol) servers.
+These skills invoke external LLM CLIs and APIs (Codex, Gemini, Kimi) via bash wrapper scripts rather than through MCP (Model Context Protocol) servers.
 
 ## Why Shell Scripts?
 
@@ -10,9 +10,9 @@ Bash is the natural choice for CLI-to-CLI integration. The wrappers handle sessi
 
 ## Security Considerations
 
-The wrapper scripts execute only the specific CLI commands needed for deliberation (`codex`, `gemini`). They do not execute arbitrary code, do not process untrusted input as commands, and do not modify system state beyond the CLIs' own behavior.
+The wrapper scripts execute only the specific CLI commands or API calls needed for deliberation (`codex`, `gemini`, `curl` to Moonshot API). They do not execute arbitrary code, do not process untrusted input as commands, and do not modify system state beyond the CLIs' own behavior.
 
-The scripts are readable and auditable. Review them before use if you have concerns: `codex-wrapper.sh`, `gemini-wrapper.sh`.
+The scripts are readable and auditable. Review them before use if you have concerns: `codex-wrapper.sh`, `gemini-wrapper.sh`, `kimi-wrapper.sh`.
 
 ## Trade-offs
 

@@ -59,6 +59,13 @@ follow all rules in codex-ask skill and evaluate if MongoDB is right for data wi
 follow all rules in gemini-ask skill and argue against microservices for this project
 ```
 
+**You want a second opinion from a different training distribution.**
+
+*Claude and Codex both said "use Redis." But you want to hear from a model trained on different data.*
+```
+follow all rules in kimi-ask skill and evaluate whether Redis is the right caching layer for this app's access patterns
+```
+
 **You want to stress-test before you commit.**
 
 *The API design looks good on paper. But you've shipped "good on paper" before.*
@@ -75,6 +82,7 @@ See [INSTRUCTIONS.md](INSTRUCTIONS.md) for more patterns.
 **Prerequisites:**
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed
 - [Codex CLI](https://github.com/openai/codex) or [Gemini CLI](https://github.com/google-gemini/gemini-cli) installed and authenticated (for codex-ask/gemini-ask)
+- [Moonshot API key](https://platform.moonshot.cn/) exported as `MOONSHOT_API_KEY` (for kimi-ask)
 - No external tools needed for claude-ask (uses Claude's Task tool internally)
 
 **Install:**
@@ -83,11 +91,12 @@ git clone https://github.com/Alex-R-A/llm-argumentation-protocol.git
 mkdir -p ~/.claude/skills
 cp -r llm-argumentation-protocol/codex-ask ~/.claude/skills/
 cp -r llm-argumentation-protocol/gemini-ask ~/.claude/skills/
+cp -r llm-argumentation-protocol/kimi-ask ~/.claude/skills/
 cp -r llm-argumentation-protocol/claude-ask ~/.claude/skills/
 ```
 
 **Which skill to use:**
-- `codex-ask` / `gemini-ask`: Cross-vendor consultation (Claude ↔ OpenAI/Google). Maximum independence, different training data.
+- `codex-ask` / `gemini-ask` / `kimi-ask`: Cross-vendor consultation (Claude ↔ OpenAI/Google/Moonshot). Maximum independence, different training data.
 - `claude-ask`: Cross-model consultation within Claude (Opus ↔ Sonnet). No external CLI needed, but models share training data so blind spots may overlap.
 
 **Ask your first question:**
@@ -154,9 +163,9 @@ For the full specification, see [PROTOCOL-EXPLAINED-FOR-HUMANS.md](PROTOCOL-EXPL
 
 ## Security
 
-Shell wrappers (~120 lines each), not MCP servers. Zero config, fully auditable.
+Shell wrappers (~120-150 lines each), not MCP servers. Zero config, fully auditable.
 
-Review them if you're cautious: `codex-wrapper.sh`, `gemini-wrapper.sh`. See [DISCLOSURE-READ-FIRST.md](DISCLOSURE-READ-FIRST.md).
+Review them if you're cautious: `codex-wrapper.sh`, `gemini-wrapper.sh`, `kimi-wrapper.sh`. See [DISCLOSURE-READ-FIRST.md](DISCLOSURE-READ-FIRST.md).
 
 ---
 
