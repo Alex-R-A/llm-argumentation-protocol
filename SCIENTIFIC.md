@@ -446,7 +446,7 @@ State is externalized to prevent in-model drift. File is ground truth.
   "iteration": 3,
   "phase": "DEVELOPMENT",
   "challenges": {
-    "C1": {"point": "...", "objection": "...", "raised_iter": 1, "status": "defended", "reminder_sent": false},
+    "C1": {"point": "...", "objection": "...", "raised_iter": 1, "status": "defended"},
     "C2": {"point": "...", "objection": "...", "raised_iter": 2, "status": "open", "reminder_sent": false}
   },
   "ledger": ["F1 [user]: ...", "F2 [verified: ref]: ..."],
