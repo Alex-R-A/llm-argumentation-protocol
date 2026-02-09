@@ -80,11 +80,12 @@ See [INSTRUCTIONS.md](INSTRUCTIONS.md) for more patterns.
 ## Try It
 
 **Prerequisites:**
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed
-- [Codex CLI](https://github.com/openai/codex) installed and authenticated (for codex-ask)
-- [Gemini CLI](https://github.com/google-gemini/gemini-cli) installed and authenticated (for gemini-ask)
-- [Moonshot API key](https://platform.moonshot.ai/console) exported as `MOONSHOT_API_KEY` (for kimi-ask)
-- No external tools needed for claude-ask (uses Claude's Task tool internally)
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed (required for all skills)
+- Only install what you plan to use:
+  - [Codex CLI](https://github.com/openai/codex) installed and authenticated (for codex-ask)
+  - [Gemini CLI](https://github.com/google-gemini/gemini-cli) installed and authenticated (for gemini-ask)
+  - [Moonshot API key](https://platform.moonshot.ai/console) exported as `MOONSHOT_API_KEY` (for kimi-ask)
+  - claude-ask requires nothing extra (uses Claude's Task tool internally)
 
 **Install:**
 ```bash
