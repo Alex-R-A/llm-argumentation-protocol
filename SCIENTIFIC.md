@@ -358,6 +358,46 @@ The protocol terminates under any of:
 - Definitional mismatch → clarify terms, retry once
 - Criteria divergence → surface tradeoff, let user choose
 
+## Compliance Failure Taxonomy
+
+Deliberation stalls fall into two categories with distinct causes and remedies:
+
+**Epistemic disagreement.** The consultee follows the protocol but evidence genuinely conflicts, data is unavailable, or evaluation criteria diverge. These are legitimate Unresolved outcomes, surfaced to the user for decision. Deadlock classification (above) handles this case.
+
+**Compliance failure.** The consultee cannot or does not follow protocol structure. The disagreement is not intellectual but procedural: the agent has lost track of the deliberation state, cannot produce evaluable output, or ignores the constraints it was given. Retrying may help; prolonged engagement will not.
+
+### Failure Classes
+
+The protocol recognizes six compliance failure modes, ordered by severity:
+
+| Class | Detection | Remedy | Escalation |
+|-------|-----------|--------|------------|
+| **Format failure** | Response cannot be parsed into discrete points with classifications | Retry (do not increment n) | 2nd consecutive format failure → Early exit |
+| **Quality failure** | Structured response but ignores disputed points or is off-topic | One targeted critique specifying what was missed | Still unusable → Early exit |
+| **Challenge tracking failure** | Consultee drops challenge IDs, cannot reference prior points | 1 ID-recovery attempt per challenge | 2+ recovery failures in session → Exit: "protocol integrity failure" |
+| **Scope instability** | 2nd correction attempt during partial defense | — | Dismissed (tag: DIALECTICAL-STALL: scope unstable) |
+| **Definitional failure** | Terms remain unclear after 1 clarification retry | — | Dismissed (tag: DIALECTICAL-STALL: terms unclear) |
+| **Unevaluable claim** | ILL-FORMED classification persists after clarification round | — | Dismissed (tag: DIALECTICAL-STALL: unevaluable after clarification) |
+
+Classes 1-3 are structural (the response itself is broken). Classes 4-6 are dialogical (the response is parseable but the exchange has stalled). Structural failures affect the entire response; dialogical failures affect individual points.
+
+### Detection Heuristics
+
+Degraded consultee context manifests as: response ignores recent challenges, asks about information already established, or contradicts prior positions without acknowledgment. These heuristics indicate the agent has lost track of deliberation state, distinct from deliberate position revision (which requires explicit `revision` tag).
+
+### Session-Level Escalation
+
+Individual DIALECTICAL-STALL tags dismiss single points. When stalls accumulate, the protocol escalates:
+
+```
+Point-level:  1 remediation attempt → Dismissed (tag: DIALECTICAL-STALL: [symptom])
+Session-level: 2+ points tagged DIALECTICAL-STALL in same session → Full exit
+```
+
+Full exit terminates deliberation and surfaces remediation guidance: narrow scope, add concrete examples, specify constraints, clarify trade-off priorities, or decompose into sub-questions. The protocol does not retry at session level; structural non-compliance is unlikely to resolve through repetition.
+
+**Design rationale.** The escalation ladder is deliberately aggressive. Prolonged engagement with a non-compliant consultee wastes iteration budget and produces unreliable classifications. Early exit with explicit failure reporting preserves the user's ability to retry with adjusted framing, rather than consuming all 8 iterations on degraded output that appears substantive but ignores the actual dispute.
+
 ## Invariants
 
 Properties that hold throughout execution:
