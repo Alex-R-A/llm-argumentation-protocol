@@ -105,16 +105,79 @@ These markers enable filtering: claims marked GUESS cannot justify upgrading dis
 ### Phase Transition Function
 
 ```
-φ(n) = CONSTRUCTIVE     if n ≤ 2
-     | DEVELOPMENT      if 3 ≤ n ≤ 5
-     | CRYSTALLIZATION  if n ≥ 6
+φ(n, ext) = CONSTRUCTIVE     if n ≤ 2 + ext,  ext ∈ {0, 1, 2}
+          | DEVELOPMENT      if 2 + ext < n ≤ 5 + ext
+          | CRYSTALLIZATION  if n > 5 + ext
+          where n ∈ [1, 8]
 ```
 
-**Extended CONSTRUCTIVE:** Permits n=3 under two triggers:
-- Coverage check finds ≥1 dispute not yet addressed
-- Required stress test not yet performed
+**Extension triggers** (evaluated at end of iter 2):
+- **Coverage check (ext += 1):** Consultee response cites artifacts not previously referenced that contradict or gap existing conclusions
+- **Stress test (ext += 1):** Early unanimous agreement under high-stakes/high-uncertainty conditions; steelman strongest objection
 
-Extension borrows from DEVELOPMENT budget; total cap remains 8.
+Extension borrows from DEVELOPMENT budget; total cap remains 8. When both trigger, coverage check runs first (constructive goal), then stress test (adversarial goal). The two goals are never combined in a single prompt.
+
+### Phase Content Restrictions
+
+Phase φ determines which content types may be introduced:
+
+| Phase | Permitted | Prohibited | Violation routing |
+|-------|-----------|------------|-------------------|
+| CONSTRUCTIVE | New arguments, scenarios, positions | — | — |
+| DEVELOPMENT | Extensions, defenses, rebuttals | New independent arguments | → NOT EVALUATED (tag: phase violation) |
+| CRYSTALLIZATION | Defenses to open challenges only | New arguments, non-decisive evidence | → NOT EVALUATED (tag: phase closed) |
+
+**Evidence exemption.** New evidence is always admissible regardless of phase, but its effect depends on whether it is decisive:
+
+```
+Decisive evidence test:
+  Does evidence directly match or contradict the exact predicate in the claim?
+    YES → decisive: updates bucket immediately regardless of phase
+    NO  → non-decisive: requires interpretive reasoning
+
+Phase-dependent routing for non-decisive evidence:
+  CONSTRUCTIVE / DEVELOPMENT → evaluate normally
+  CRYSTALLIZATION            → NOT EVALUATED (interpretation = new reasoning)
+```
+
+**Decisiveness heuristic:** "If you must explain *why* the evidence matters, it's not decisive." Example: "X never throws" + stack trace of X throwing = decisive. "Fast enough" + 10ms benchmark = non-decisive (requires threshold reasoning).
+
+### Adversarial Safeguards
+
+Two mechanisms guard against premature convergence, evaluated at end of iteration 2:
+
+#### Coverage Check
+
+**Trigger:** ≥1 dispute not yet addressed at end of iter 2.
+
+**Prompt:** "What's missing from this analysis?"
+
+**Extension condition:** Response cites artifacts not previously referenced in this deliberation AND (contradicts existing Agreed item OR reveals gap invalidating current conclusions).
+
+```
+Verification: Scan iter 1-2 transcripts for cited artifact.
+  Found    → not new evidence, do not extend
+  Not found → new evidence; apply ATTACK test:
+    Contradicts existing item    → extend CONSTRUCTIVE (+1 iter)
+    Generic addition ("also...")  → do not extend
+```
+
+#### Stress Test
+
+**Trigger:** All points AGREE by end of iter 2 AND (high stakes ∨ high uncertainty ∨ unusually fast agreement).
+
+**Prompt:** "Steelman the strongest objection to [conclusion]. Classify: (i) fatal flaw, (ii) open question, (iii) mitigable concern."
+
+**Dual-Veto routing:** Consultee must specify impact set I ⊆ Agreed point IDs. If omitted, I defaults to all Agreed IDs.
+
+```
+Classification routing:
+  Fatal ∨ Unresolved ∨ Inconclusive → I to Unresolved
+  Mitigable (both parties agree + mitigation text) → rewrite affected points (tag: conditional)
+  Refuted (orchestrator evidence + consultee confirms) → Agreed unchanged, objection Dismissed
+```
+
+**Bounded:** One objection + one response. Does not recurse. Neither party can unilaterally force acceptance; both must agree on mitigation or affected claims become Unresolved.
 
 ### Workflow
 
@@ -141,7 +204,7 @@ Stage 0 is a pre-gate. Stages 2-6 repeat until termination. Format failures do n
 | **AGREE** | Claim accepted | → Agreed bucket |
 | **SKEPTICAL** | Flaw identified, defense possible | Issue challenge, standard window |
 | **REJECT** | Claim wrong, one chance to rebut | Issue challenge, single round |
-| **ILL-FORMED** | Unevaluable (ambiguous, not a claim) | Request clarification; if unresolved after retry → Dismissed (tag: ILL-FORMED) |
+| **ILL-FORMED** | Unevaluable (ambiguous, not a claim) | Request clarification; if unresolved after retry → Dismissed (tag: DIALECTICAL-STALL) |
 
 ### Acceptance Semantics
 
@@ -177,6 +240,48 @@ Defense evaluation:
   Explicit concession  → status := conceded → Dismissed
 ```
 
+### Partial Defense Protocol
+
+When a consultee concedes part of a challenged claim while defending the remainder:
+
+```
+Conceded portion → Dismissed (tag: PARTIAL-CONCEDE)
+Defended portion → scope narrowing protocol:
+
+  Orchestrator: "You now claim [narrowed scope]. Confirm or correct."
+
+  Consultee confirms    → evaluate narrowed claim normally
+  Consultee corrects    → accept correction (max 1), then evaluate
+  2nd correction attempt → Dismissed (tag: DIALECTICAL-STALL: scope unstable)
+```
+
+**Rationale:** LLMs may articulate narrowed positions imprecisely. The confirmation round tests mutual understanding before adjudication. Unbounded corrections indicate fundamental ambiguity; one correction accommodates reasonable clarification while preventing indefinite scope shifting.
+
+### Triage and Overflow Handling
+
+**Triage routing.** Applied to every point from the consultee's response:
+
+```
+For each point P:
+  in-scope            → canonicalize, then Evaluate
+  out-of-scope        → Dismissed (tag: out-of-scope)
+  anchor-shift        → test: serves anchor better, or shifts it?
+    serves            → treat as in-scope
+    shifts            → Unresolved (status: pending-anchor-shift; requires user consent per Invariant 2)
+```
+
+**Canonicalization.** Deduplicate claims when identical evidence would yield identical verdict. Test: would accepting/rejecting claim A require the same artifact examination as claim B? Same evidence → merge. Different evidence needed → keep separate even if superficially similar.
+
+**Overflow handling (>7 points).** Without cardinality bounds, deliberation time grows as O(kn). For k > 7, the protocol applies themeing-based prioritization:
+
+1. Group points into ≤5 themes
+2. Identify blocking claims (would invalidate other work if true)
+3. Deliberate blocking themes first
+4. Rank remainder by anchor relevance until iteration budget exhausted
+5. Overflow → NOT EVALUATED (with explicit warning if any overflow was blocking)
+
+**Hard rule:** Undeliberated points never route to Agreed. Overflow points are marked NOT EVALUATED, preserving the distinction between "evaluated and accepted" and "never examined."
+
 ### Bias Calibration
 
 *Note: These are invariant-level constraints that apply throughout execution, positioned here for proximity to the mechanics they constrain.*
@@ -194,6 +299,27 @@ Contradiction without explicit acknowledgment ("Revising from X to Y because..."
 *Implementation note:* Position history is tracked in the externalized state file, not agent memory. This sidesteps bounded context limitations by persisting positions to disk and re-loading relevant entries each iteration.
 
 **Anti-sycophancy guard.** If consultee contradicts its earlier position without acknowledgment, challenge with citation: "Iteration 2 you claimed X, now you claim ¬X. Reconcile."
+
+### Dependency Gate
+
+Decision procedure for claims involving external dependencies (libraries, platforms, tools):
+
+```
+Input: Claim advocating dependency D
+Test:  Name the granular operation that fails without D.
+
+  Can name    → classify claim as CERTAIN or LIKELY; evaluate normally
+  Cannot name → classify as GUESS
+
+Tie-breaker:
+  Both sides GUESS on operational behavior → fewer dependencies wins immediately
+
+Defense filter:
+  Generic defenses ("reliable", "standard", "best practice") without naming
+  what breaks → keep challenging; do not concede
+```
+
+**Rationale:** "X is universal/standard" proves existence (textual evidence) but not reliability in a specific use case (requires execution evidence). Burden of proof rests with the party proposing dependencies: they must demonstrate concrete failure of simpler alternatives.
 
 ### Behavioral Induction
 
@@ -241,7 +367,7 @@ Properties that hold throughout execution:
 3. **Epistemic gate**: Empirical claims cannot achieve Agreed via unverified assertions
 4. **Defense obligation**: Challenged points must be defended by ID or are procedurally dismissed
 5. **Provenance integrity**: Ledger tags cannot be upgraded without verification
-6. **Role symmetry**: Protocol mechanics apply regardless of which agent proposes vs evaluates; framing determines adversarial stance, not evaluation rigor
+6. **Role symmetry** *(editorial; implicit in spec, not listed as invariant)*: Protocol mechanics apply regardless of which agent proposes vs evaluates; framing determines adversarial stance, not evaluation rigor
 
 ## Complexity
 
@@ -325,18 +451,34 @@ State is externalized to prevent in-model drift. File is ground truth.
 
 **Multi-agent deliberation.** The protocol relates to distributed AI systems where multiple agents must reach consensus (Olfati-Saber et al., 2007). The key difference is epistemic: LLM agents share training biases, so convergence mechanisms must account for correlated errors rather than assuming independent observations.
 
+**LLM self-evaluation and constitutional constraints.** Bai et al. (2022) demonstrate that LLMs can critique and revise their own outputs using principle-based feedback (Constitutional AI). This protocol externalizes the critique to a separate agent and adds adversarial structure: rather than self-correction against static principles, the consultee's claims face active challenge with defense obligations and evidence gates. The constitutional approach assumes a trusted evaluator; this protocol assumes neither party is authoritative.
+
+**Consistency through sampling.** Wang et al. (2023) show that sampling multiple reasoning paths and selecting the most consistent answer improves chain-of-thought reliability. This protocol pursues a related goal through structured adversarial exchange rather than statistical aggregation: instead of sampling and voting, it forces explicit defense of claims under challenge, surfacing disagreements that majority-vote methods would suppress.
+
+**Debate as alignment mechanism.** Khan et al. (2024) provide empirical evidence that debate between LLMs improves truthfulness of answers, with more persuasive debaters yielding more accurate outcomes. Their findings support the core hypothesis of this protocol, that adversarial structure extracts better answers than single-agent consultation, while this protocol adds formal machinery (phased convergence, evidence hierarchy, provenance tracking) absent from their experimental setup.
+
+**Computational argumentation mining.** Stab & Gurevych (2017) develop methods for parsing argumentation structures in natural text, identifying claims, premises, and support/attack relations. Their work on automatic argument structure recognition informs the classification semantics used here (AGREE/SKEPTICAL/REJECT/ILL-FORMED), though this protocol applies classifications procedurally during deliberation rather than extracting them post-hoc from completed texts.
+
 ## References
 
 - Alchourrón, C.E., Gärdenfors, P., & Makinson, D. (1985). On the logic of theory change: Partial meet contraction and revision functions. *Journal of Symbolic Logic*, 50(2), 510-530.
+
+- Bai, Y., Kadavath, S., Kundu, S., Askell, A., Kernion, J., Jones, A., ... & Kaplan, J. (2022). Constitutional AI: Harmlessness from AI feedback. *arXiv preprint arXiv:2212.08073*.
 
 - Dung, P.M. (1995). On the acceptability of arguments and its fundamental role in nonmonotonic reasoning, logic programming and n-person games. *Artificial Intelligence*, 77(2), 321-357.
 
 - Irving, G., Christiano, P., & Amodei, D. (2018). AI safety via debate. *arXiv preprint arXiv:1805.00899*.
 
+- Khan, A., Hughes, J., Valentine, D., Ruis, L., Sachan, M., Radhakrishnan, A., Grefenstette, E., Bowman, S.R., Rocktäschel, T., & Perez, E. (2024). Debating with more persuasive LLMs leads to more truthful answers. *Proceedings of the 41st International Conference on Machine Learning (ICML)*, PMLR 235:23662-23733.
+
 - Modgil, S., & Prakken, H. (2014). The ASPIC+ framework for structured argumentation: A tutorial. *Argument & Computation*, 5(1), 31-62.
 
 - Olfati-Saber, R., Fax, J.A., & Murray, R.M. (2007). Consensus and cooperation in networked multi-agent systems. *Proceedings of the IEEE*, 95(1), 215-233.
 
+- Stab, C., & Gurevych, I. (2017). Parsing argumentation structures in persuasive essays. *Computational Linguistics*, 43(3), 619-659.
+
 - Walton, D.N., & Krabbe, E.C.W. (1995). *Commitment in Dialogue: Basic Concepts of Interpersonal Reasoning*. SUNY Press.
+
+- Wang, X., Wei, J., Schuurmans, D., Le, Q., Chi, E., Narang, S., Chowdhery, A., & Zhou, D. (2023). Self-consistency improves chain of thought reasoning in language models. *Proceedings of the 11th International Conference on Learning Representations (ICLR)*.
 
 For the human-readable protocol explanation, see [PROTOCOL-EXPLAINED-FOR-HUMANS.md](PROTOCOL-EXPLAINED-FOR-HUMANS.md).
