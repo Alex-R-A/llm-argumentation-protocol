@@ -39,6 +39,18 @@
 
 ---
 
+## Kimi Has No Filesystem Access
+
+**Problem:** Unlike Codex and Gemini, which run as local CLIs with filesystem access, Kimi is accessed via HTTP API (`curl` to Moonshot's endpoint). It cannot read files from your machine. The orchestrator must include all relevant code and context inline in each prompt.
+
+**Implications:** Deliberations involving large files or many files may hit the model's context window limit. kimi-ask works best when the code under review is small and focused, ideally a single file or a few short excerpts, rather than broad codebase-level analysis.
+
+**Why it's different:** Codex CLI and Gemini CLI run locally and can scan your project directory. Kimi has no CLI; the wrapper script sends prompts and receives responses over HTTP, so anything Kimi needs to see must be pasted into the request payload.
+
+**Workaround:** Scope kimi-ask questions narrowly. Extract the specific functions, classes, or config sections relevant to the question rather than passing entire files.
+
+---
+
 ## Stale Task Notifications After Completion
 
 **Problem:** After a background task (Codex/Gemini wrapper) completes and results are retrieved via `TaskOutput`, `<task-notification>` events continue to arrive for the same task.
