@@ -91,7 +91,11 @@ But not every question needs 8 iterations. See "Complexity Modes" below.
 
 Quality failures (structured but off-topic, ignores disputed points) get one quality-focused critique. If still unusable, early exit: "Unable to engage at required level." The protocol doesn't throw good iterations after bad.
 
-**Evidence is phase-exempt.** New evidence can always be introduced regardless of phase. The rationale: if someone produces a stack trace that directly contradicts a claim, you can't say "sorry, we're in CRYSTALLIZATION, can't look at that." But there's a distinction between "decisive" evidence (directly proves/disproves a predicate) and evidence that requires interpretation. Only decisive evidence can flip verdicts late in the game.
+**Evidence is phase-exempt.** New evidence can always be introduced regardless of phase. The rationale: if someone produces a stack trace that directly contradicts a claim, you can't say "sorry, we're in CRYSTALLIZATION, can't look at that."
+
+But not all evidence is equal. The protocol distinguishes between **decisive** and **non-decisive** evidence. Decisive evidence directly settles a claim without needing interpretation. The claim says "function X never throws," and here's a stack trace of X throwing. Done. Non-decisive evidence requires reasoning about what it means. A 10ms benchmark when the claim is "fast enough" requires someone to decide what "enough" means first.
+
+The test is simple: if you have to explain *why* the evidence matters, it's not decisive. Decisive evidence speaks for itself. This distinction controls what happens in later phases: decisive evidence can flip verdicts at any point in the deliberation, while non-decisive evidence introduced late gets set aside as "Not evaluated" rather than reopening settled arguments.
 
 ---
 
