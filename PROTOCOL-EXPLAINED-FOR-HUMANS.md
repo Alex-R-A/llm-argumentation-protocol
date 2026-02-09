@@ -229,6 +229,14 @@ When the Orchestrating LLM disagrees with a point, it issues a challenge. Two fl
 
 **The dropped-challenge problem:** The protocol explicitly notes that "LLM silence ≠ concession." The Responding LLM might fail to address a challenge due to attention failure (context window limitations, got distracted by other points) rather than because it concedes. The reminder mechanism accounts for this. It's a charitable interpretation baked into the rules.
 
+**Partial defenses:** Sometimes the Responding LLM half-agrees. It concedes part of a claim while defending the rest. The protocol splits the claim in two: the conceded part gets dismissed, the defended part gets re-evaluated at its narrowed scope. The Orchestrating LLM restates what the narrowed claim now is and asks the Responding LLM to confirm. One correction is allowed if the restatement was off. A second correction means the claim's scope is unstable, and it gets dismissed.
+
+**Why this matters:** Without splitting, every challenge becomes all-or-nothing. A partially valid point gets thrown out entirely because part of it was wrong. Splitting preserves the good parts while discarding the bad, which produces more accurate results.
+
+**"Defended" doesn't mean "accepted."** The protocol draws a sharp line between whether the Responding LLM responded to a challenge (status) and whether that response was actually convincing (bucket). A challenge with status "defended" just means the Responding LLM showed up and made its case. The Orchestrating LLM still has to decide: was that defense good enough to move to Agreed, or does it stay disputed?
+
+**Why this distinction exists:** Without it, "they responded" gets confused with "they were right." The Responding LLM producing a confident, well-structured defense doesn't make the defense correct. Status tracks behavior; the bucket tracks the verdict. Check the bucket to know the outcome, check the status to know the history.
+
 ---
 
 ## The Ledger
@@ -262,6 +270,14 @@ The "Bias & Humility" section is the most philosophically interesting part. Seve
 **Position stability check:** Before finalizing any classification, verify you haven't silently changed your position from earlier in the deliberation. If you have, you must explicitly acknowledge the revision.
 
 **Why these exist:** LLMs exhibit position drift (earlier positions scroll out of context), sycophantic capitulation (pushback triggers agreement), and stochastic variation. The protocol treats these as failure modes analogous to human debate pathologies, even though the mechanisms differ.
+
+**The Dependency Gate:** When a claim involves adding a dependency, a library, a platform, or an external tool, a special rule kicks in. The claimant must name the specific thing that breaks without it. Not "it's standard" or "it's best practice," but "parsing format X fails without this library." If neither side can name what concretely breaks, the simpler option (fewer dependencies) wins automatically.
+
+**Why this exists:** LLMs love recommending tools. Their training data is full of Stack Overflow answers saying "just use library X." They'll suggest adding Redis, Docker, or a state management framework because those solutions appear frequently in training data, not because they've verified the problem actually requires them. The Dependency Gate forces the conversation from "this is popular" to "this is necessary." Popularity isn't evidence. A concrete failure mode is.
+
+**Grounding value claims:** When the Responding LLM says something is "simpler," "cleaner," or "more maintainable," the protocol now requires it to name what it's measuring. Fewer lines of code? Fewer dependencies? Lower cyclomatic complexity? If it can't point to something observable, it must withdraw the claim. One warning, then dismissed.
+
+**Why this exists:** "Simpler" and "cleaner" are the LLM equivalent of hand-waving. They sound like analysis but they're aesthetic judgments dressed up as technical claims. Every LLM produces them freely because training data rewards confident-sounding assessments. The grounding requirement converts vague praise into something you can actually check or disagree with.
 
 ---
 
@@ -326,6 +342,10 @@ The protocol anticipates several failure modes:
 **Loop detection:** Arguments repeating without new information suggests definitional mismatch—both sides are "right" under different interpretations of the terms.
 
 **Inconclusive exit:** If everything ends up UNRESOLVED, don't present it as successful deliberation. Explicitly flag it and surface blockers.
+
+**Dialectical stall:** Sometimes the deliberation doesn't fail on content but on process. The Responding LLM keeps producing claims that can't be evaluated as stated, or keeps shifting the scope of what it's defending, or can't agree on what the terms mean even after clarification. The protocol calls this a "dialectical stall," meaning the back-and-forth itself has broken down. One recovery attempt is allowed per type of breakdown. If it's still stuck, that point gets dismissed. If two or more points stall in the same session, the whole deliberation exits with guidance on how to retry with a narrower or clearer question.
+
+**Why this exists:** Without a stall detector, a broken deliberation can burn through all 8 iterations producing nothing useful. The protocol cuts its losses early: if the process can't function, stop spending iterations and tell the user what went wrong so they can try differently.
 
 ---
 
@@ -407,7 +427,7 @@ Several rules seem arbitrary until you understand they're fighting specific LLM 
 
 **"Identify UP TO 2 ambiguities"** - Without a limit, an LLM will find ambiguities endlessly. Every question has theoretical edge cases. The limit prevents rabbit-holing and forces prioritization. Humans naturally prioritize; LLMs list exhaustively unless constrained.
 
-**"If >7 points remain, group by theme"** - Seven points is approximately where tracking degrades. With more points, the LLM (both Orchestrating and Responding) starts losing thread. Grouping creates structure that aids attention. Humans have similar limits but manage them intuitively; LLMs need explicit structural intervention.
+**"If >7 points remain, group by theme and handle blocking claims first"** - Seven points is approximately where tracking degrades. With more points, the LLM (both Orchestrating and Responding) starts losing thread. Grouping creates structure that aids attention. Humans have similar limits but manage them intuitively; LLMs need explicit structural intervention. The protocol now adds a priority rule: claims that would invalidate other work if true get deliberated first. If you agree on point 5 but never got to point 2, and point 2 would have overturned point 5, you wasted that effort. Points that overflow the budget go to "Not evaluated," and critically, undeliberated points can never end up in Agreed. You can't agree with something you haven't examined.
 
 **"Canonicalize (deduplicate same-assertion points)"** - LLMs frequently make the same point multiple ways. "Caching improves performance" and "performance benefits from caching" might both appear as distinct points. Humans recognize these as the same claim; LLMs don't automatically deduplicate. Without canonicalization, you debate the same thing twice under different wording.
 
