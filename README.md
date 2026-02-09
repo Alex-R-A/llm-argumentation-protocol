@@ -176,6 +176,22 @@ The receipts let you act with confidence in areas outside your expertise.
 
 ---
 
+## Two Directions, Not One
+
+The debate runs both ways. You can have Claude present its position and let the consultee poke holes in it, or you can ask the consultee to propose its own answer and let Claude poke holes in that. The direction matters because it changes where the original idea comes from.
+
+"Stress-test what I have" means Claude already has a take. The consultee's job is to find what's wrong with it. "Give me your best answer" means the consultee proposes something Claude hasn't thought of, and Claude's job is to find what's wrong with that. One direction validates your current path. The other surfaces paths you'd never consider. If the skill only ran one way, you'd get half the value.
+
+```
+# Claude proposes, consultee challenges
+follow all rules in codex-ask skill and evaluate if my caching strategy in src/cache is sound
+
+# Consultee proposes, Claude challenges
+follow all rules in codex-ask skill and have codex propose the best caching strategy for this app and defend it
+```
+
+---
+
 ## Under the Hood
 
 *For the curious.*
