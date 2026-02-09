@@ -22,7 +22,7 @@ This protocol addresses each through explicit mechanisms: epistemic gates, anti-
 
 The protocol draws from several formal traditions:
 
-**Abstract Argumentation Theory.** Following Dung's seminal work on abstract argumentation frameworks (1995), arguments exist in attack relations. A claim under challenge must be defended or concedes defeat. The acceptance semantics (Agreed/Dismissed/Unresolved) partition the argument space, though the computation is procedural rather than fixpoint-based.
+**Abstract Argumentation Theory.** Following Dung's foundational work on abstract argumentation frameworks (1995), arguments exist in attack relations. A claim under challenge must be defended or concedes defeat. The acceptance semantics (Agreed/Dismissed/Unresolved) partition the argument space, though the computation is procedural rather than fixpoint-based.
 
 **Epistemic Constraints.** Empirical claims require verification against shared artifacts. The evidence hierarchy distinguishes execution traces (strongest), textual citations, and unverified assertions. Claims lacking grounding cannot achieve acceptance regardless of rhetorical force.
 
@@ -117,6 +117,8 @@ These markers enable filtering: claims marked GUESS cannot justify upgrading dis
 
 Extension borrows from DEVELOPMENT budget; total cap remains 8. When both trigger, coverage check runs first (constructive goal), then stress test (adversarial goal). The two goals are never combined in a single prompt.
 
+*Note:* The default phase boundaries (CONSTRUCTIVE 1-2, DEVELOPMENT 3-5, CRYSTALLIZATION 6-8) correspond to ext = 0. The formal function above generalizes to account for extensions; e.g., with both triggers (ext = 2), CONSTRUCTIVE spans iterations 1-4.
+
 ### Phase Content Restrictions
 
 Phase φ determines which content types may be introduced:
@@ -148,11 +150,11 @@ Two mechanisms guard against premature convergence, evaluated at end of iteratio
 
 #### Coverage Check
 
-**Trigger:** ≥1 dispute not yet addressed at end of iter 2.
+**Trigger:** Mandatory at end of iter 2 (always runs, regardless of dispute state).
 
 **Prompt:** "What's missing from this analysis?"
 
-**Extension condition:** Response cites artifacts not previously referenced in this deliberation AND (contradicts existing Agreed item OR reveals gap invalidating current conclusions).
+**Extension condition:** Response introduces new evidence (artifacts not previously cited in iter 1-2) AND that evidence passes the ATTACK test (contradicts existing Agreed item OR reveals gap invalidating current conclusions). Reframing existing evidence with different words does not qualify. Evidence available earlier but uncited does not qualify.
 
 ```
 Verification: Scan iter 1-2 transcripts for cited artifact.
@@ -204,7 +206,7 @@ Stage 0 is a pre-gate. Stages 2-6 repeat until termination. Format failures do n
 | **AGREE** | Claim accepted | → Agreed bucket |
 | **SKEPTICAL** | Flaw identified, defense possible | Issue challenge, standard window |
 | **REJECT** | Claim wrong, one chance to rebut | Issue challenge, single round |
-| **ILL-FORMED** | Unevaluable (ambiguous, not a claim) | Request clarification; if unresolved after retry → Dismissed (tag: DIALECTICAL-STALL: unevaluable after clarification) |
+| **ILL-FORMED** | Unevaluable (ambiguous, not a claim) | Request clarification stating *why* unevaluable (generic "unclear" insufficient); does not increment n. Rephrased → re-enter at Evaluate (exempt from phase rules). Still unevaluable → Dismissed (tag: DIALECTICAL-STALL: unevaluable after clarification) |
 
 ### Acceptance Semantics
 
@@ -214,7 +216,7 @@ Stage 0 is a pre-gate. Stages 2-6 repeat until termination. Format failures do n
 | **Dismissed** | Concession ∨ undefended ∨ rejection with evidence ∨ out-of-scope |
 | **Unresolved** | Blocked: missing data ∨ definitional mismatch ∨ criteria divergence |
 
-**Evidence gate for empirical claims:** `evidence_type ∈ {execution, textual}` required. Value judgments bypass gate with `evidence_type = n/a`.
+**Evidence gate for empirical claims:** `evidence_type ∈ {execution, textual}` required. Value judgments (simpler, cleaner, more maintainable) are non-empirical and bypass the gate with `evidence_type = n/a`, but require observable referents. Value claims without observable referents are challenged once for reframing; if still ungrounded → Dismissed (tag: UNGROUNDED: value claim without measurable basis).
 
 ### Evidence Hierarchy
 
@@ -272,7 +274,7 @@ For each point P:
 
 **Canonicalization.** Deduplicate claims when identical evidence would yield identical verdict. Test: would accepting/rejecting claim A require the same artifact examination as claim B? Same evidence → merge. Different evidence needed → keep separate even if superficially similar.
 
-**Overflow handling (>7 points).** Without cardinality bounds, deliberation time grows as O(kn). For k > 7, the protocol applies themeing-based prioritization:
+**Overflow handling (>7 points).** Without cardinality bounds, deliberation time grows as O(k · n). For k > 7, the protocol applies themeing-based prioritization:
 
 1. Group points into ≤5 themes
 2. Identify blocking claims (would invalidate other work if true)
@@ -340,7 +342,7 @@ Before presenting output, invoke secondary verification:
 
 **Triggers:** (a) 2+ unresolved items, (b) early unanimous lacking evidence, (c) high-stakes decision, (d) user request.
 
-**Prompt:** Question + ledger + buckets. Agent names are omitted (no attribution), but bucket contents including point/reason pairs and challenge/defense exchanges are included for evaluation. "Are agreed points well-supported? Dismissals justified? Unresolved genuinely blocked?"
+**Prompt:** Question + ledger + buckets, no attribution (agent names omitted). "Are agreed points well-supported? Dismissals justified? Unresolved genuinely blocked?"
 
 Flags reduce confidence only. ≥60% of evaluated points flagged → exit with insufficient-confidence warning. <60% flagged → present unflagged points normally, append arbitration concerns.
 
@@ -353,7 +355,7 @@ The protocol terminates under any of:
 3. **Early exit (trivial)**: Question factual, resolved by iter 2
 4. **Early exit (quality)**: Consultee unable to produce structured responses after retry
 
-**Deadlock classification** (3+ defense rounds on same challenge, tracked via `defense_rounds` counter):
+**Deadlock classification** (challenge open 3+ iterations):
 - Missing empirical data → route to Blocked, surface question to user
 - Definitional mismatch → clarify terms, retry once
 - Criteria divergence → surface tradeoff, let user choose
@@ -372,8 +374,8 @@ The protocol recognizes eight failure modes. Classes 1-3 are structural (the res
 
 | # | Class | Detection | Remedy | Escalation |
 |---|-------|-----------|--------|------------|
-| 1 | **Format failure** | Response cannot be parsed into discrete points with classifications, or lacks evidence tags on verification claims | Retry (do not increment n) | 2nd consecutive format failure → Early exit (quality) |
-| 2 | **Quality failure** | Structured response but ignores disputed points or is off-topic | One quality-focused critique (do not increment n) | Still unusable → Early exit (quality) |
+| 1 | **Format failure** | No numbered points AND cannot map to disputes, OR no evidence tags on verification claims | Retry (do not increment n) | 2nd consecutive format failure → Early exit (quality) |
+| 2 | **Quality failure** | Structured but off-topic (ignores disputed points) | One quality-focused critique (do not increment n) | Still unusable → Early exit (quality) |
 | 3 | **Challenge tracking failure** | Consultee drops challenge IDs, cannot reference prior points | 1 ID-recovery attempt per challenge | 2+ distinct challenges in same session require ID recovery → Exit: "Protocol integrity failure: consultee unable to maintain challenge tracking" |
 | 4 | **Scope instability** | 2nd correction attempt during partial defense (see Partial Defense Protocol) | — | Dismissed (tag: DIALECTICAL-STALL: scope unstable) |
 | 5 | **Definitional failure** | Terms remain unclear after 1 clarification retry | — | Dismissed (tag: DIALECTICAL-STALL: terms unclear) |
@@ -414,14 +416,15 @@ Properties that hold throughout execution:
 3. **Epistemic gate**: Empirical claims cannot achieve Agreed via unverified assertions
 4. **Defense obligation**: Challenged points must be defended by ID or are procedurally dismissed
 5. **Provenance integrity**: Ledger tags cannot be upgraded without verification
-6. **Role symmetry** *(editorial; implicit in spec, not listed as invariant)*: Protocol mechanics apply regardless of which agent proposes vs evaluates; framing determines adversarial stance, not evaluation rigor
+
+*Remark (Role symmetry).* Protocol mechanics apply regardless of which agent proposes vs evaluates; framing determines adversarial stance, not evaluation rigor. This property is implicit in the spec but not listed as a numbered invariant.
 
 ## Complexity
 
 | Measure | Bound | Notes |
 |---------|-------|-------|
 | Iterations | O(1) | Constant bound of 8 |
-| Challenges | O(k) per iteration | k = points under dispute |
+| Challenges | O(k) per iteration | k = points under dispute; deliberation time grows as O(k · n) |
 | State | O(\|L\| + \|C\| + \|M\|) | Ledger + challenges + SSM |
 | Messages | 2n | Request/response pairs for n iterations |
 
@@ -443,8 +446,8 @@ State is externalized to prevent in-model drift. File is ground truth.
   "iteration": 3,
   "phase": "DEVELOPMENT",
   "challenges": {
-    "C1": {"point": "...", "objection": "...", "raised_iter": 1, "status": "defended", "defense_rounds": 1},
-    "C2": {"point": "...", "objection": "...", "raised_iter": 2, "status": "open", "defense_rounds": 0}
+    "C1": {"point": "...", "objection": "...", "raised_iter": 1, "status": "defended", "reminder_sent": false},
+    "C2": {"point": "...", "objection": "...", "raised_iter": 2, "status": "open", "reminder_sent": false}
   },
   "ledger": ["F1 [user]: ...", "F2 [verified: ref]: ..."],
   "disputed": ["C2"],
@@ -467,7 +470,7 @@ State is externalized to prevent in-model drift. File is ground truth.
 | Mode | Behavior |
 |------|----------|
 | Standard | Full protocol with state persistence |
-| Minimal | Disables arbitration and stress testing; retains phases, ledger, challenge tracking. Extended CONSTRUCTIVE can only trigger via coverage check (trigger A), not stress test (trigger B). |
+| Minimal | Disables arbitration and stress test entirely; retains phases, ledger, challenge tracking, bias checks. Extended CONSTRUCTIVE can only trigger via coverage check (trigger A). |
 | Quick | 2-iteration max, stateless, no challenge IDs; for simple binary decisions |
 
 ## Limitations
