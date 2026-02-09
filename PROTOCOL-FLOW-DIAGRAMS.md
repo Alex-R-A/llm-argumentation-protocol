@@ -127,7 +127,7 @@ DIRECTION B: Consultee proposes, Claude challenges
       │                                │
       │──── challenges points ────────→│
       │                                │
-      │◄─── defenses ─────────────────│
+      │◄─── defenses ──────────────────│
       │             ...                │
       ▼                                ▼
                  Three Buckets
@@ -280,9 +280,9 @@ REJECT FLOW ("I believe this is wrong")
   └──┬────┬──┘
      │    │
   accepted rejected
-     │       │
-     ▼       ▼
-  upgrade  DISMISSED
+     │    │
+     ▼    ▼
+  upgrade DISMISSED
   to AGREE (terminal, no
   or       more rounds)
   SKEPTICAL
@@ -383,12 +383,12 @@ EXTENSION DECISION (end of iter 2)
                      ┌────┴─────┐
                      │          │
               disputes       all AGREE
-              remain?            │
-                  │         ┌────┴────┐
+              remain?           │
+                  │         ┌───┴─────┐
                   │      high-stakes  normal
-                  │      or suspect     │
-                  │         │           │
-                  ▼         ▼           ▼
+                  │      or suspect   │
+                  │         │         │
+                  ▼         ▼         ▼
             Coverage     Stress       proceed to
             Check        Test         DEVELOPMENT
             (Trigger A)  (Trigger B)
@@ -401,12 +401,12 @@ EXTENSION DECISION (end of iter 2)
              ┌────┴────┐    │
           NEW        nothing│
          evidence    new    │
-             │        │     │
-             ▼        ▼     │
+             │         │    │
+             ▼         ▼    │
           extend    no      │
              │   extension  │
-             │        │     │
-             │        ▼     │
+             │         │    │
+             │         ▼    │
              │    DEVELOPMENT
              │              │
              └──────┬───────┘
@@ -512,8 +512,8 @@ The five-step procedure applied to every in-scope point at step 3 (Evaluate). Ga
      ┌────┴────┐         │
   can state  can't       │
   the flaw   state it    │
-     │          │        │
-     │          ▼        │
+     │         │         │
+     │         ▼         │
      │    don't challenge│
      │    → clarify      │
      │    instead        │
