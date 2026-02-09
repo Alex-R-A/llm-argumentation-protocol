@@ -102,6 +102,7 @@ Best for early-stage exploration, breaking out of tunnel vision, and problems wh
   - [Gemini CLI](https://github.com/google-gemini/gemini-cli) installed and authenticated (for gemini-ask)
   - [Moonshot API key](https://platform.moonshot.ai/console) exported as `MOONSHOT_API_KEY` (for kimi-ask)
   - claude-ask requires nothing extra (uses Claude's Task tool internally)
+  - `round-robin-ask` benefits from all of the above but works with any subset. If some are unavailable, tell Claude which to skip: `"follow all rules in round-robin-ask skill, skip Kimi and Codex, to explore ..."`
 
 **Install:**
 ```bash
