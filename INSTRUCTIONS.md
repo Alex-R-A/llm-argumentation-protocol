@@ -7,7 +7,24 @@
 - At least one consultee installed and authenticated:
   - [Codex CLI](https://github.com/openai/codex) for `codex-ask`
   - [Gemini CLI](https://github.com/google-gemini/gemini-cli) for `gemini-ask`
-  - [Moonshot API key](https://platform.moonshot.ai/console) for `kimi-ask`: `export MOONSHOT_API_KEY=your-key-here`
+  - [Moonshot API key](https://platform.moonshot.ai/console) for `kimi-ask` (see setup below)
+
+## Kimi API Key Setup
+
+kimi-ask connects to Moonshot's API, which requires an API key. To get one:
+
+1. Go to [platform.moonshot.ai/console](https://platform.moonshot.ai/console) and create an account
+2. Navigate to the API keys section and generate a new key
+3. Add the key to your shell profile so it's available in every terminal session:
+
+```bash
+# Add this line to your ~/.zshrc (macOS) or ~/.bashrc (Linux):
+export MOONSHOT_API_KEY=your-key-here
+```
+
+4. Reload your shell (`source ~/.zshrc` or open a new terminal) for the change to take effect
+
+Codex and Gemini handle authentication through their own CLI login commands. Kimi is different because it has no CLI, so authentication is done via this environment variable.
 
 ## Setup
 
