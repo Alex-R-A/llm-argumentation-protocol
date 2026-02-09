@@ -448,12 +448,12 @@ PHASE VIOLATIONS
 
   Content arriving in wrong phase:
 
-  ┌──────────────────┬──────────────────────────────────┐
-  │ Phase            │ New argument arrives              │
-  ├──────────────────┼──────────────────────────────────┤
-  │ DEVELOPMENT      │ → NOT EVALUATED (phase violation) │
-  │ CRYSTALLIZATION  │ → NOT EVALUATED (phase closed)    │
-  └──────────────────┴──────────────────────────────────┘
+  ┌──────────────────┬───────────────────────────────────┐
+  │ Phase            │ New argument arrives               │
+  ├──────────────────┼───────────────────────────────────┤
+  │ DEVELOPMENT      │ → NOT EVALUATED (phase violation)  │
+  │ CRYSTALLIZATION  │ → NOT EVALUATED (phase closed)     │
+  └──────────────────┴───────────────────────────────────┘
 
   Exception: evidence is always phase-exempt (see Evidence graph).
 
