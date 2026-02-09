@@ -83,7 +83,17 @@ The deliberation skills above are one-on-one: Claude consults one other model, t
 
 But some problems aren't like that. You're exploring a design space, not evaluating a choice. You want divergent thinking, not convergent debate. "What's the right architecture?" is a different question than "Is this architecture right?"
 
-`round-robin-ask` puts you in the orchestrator seat across multiple models serially: Codex, Gemini, Sonnet, Opus. You ask each one separately, synthesize their takes, cross-pollinate the interesting bits, and let disagreements surface naturally without the peer pressure of models responding to each other directly. Each model's blind spots get exposed by the others' strengths. Codex proposes structure, Gemini finds failure modes, Sonnet stress-tests against examples, Opus reframes when everyone's stuck.
+`round-robin-ask` puts you in the orchestrator seat across multiple models serially. You ask each one separately, synthesize their takes, cross-pollinate the interesting bits, and let disagreements surface naturally without the peer pressure of models responding to each other directly.
+
+**Models and roles:**
+
+| Model | Role |
+|-------|------|
+| Codex (GPT-5.3) | Structural architect. Proposes schemas, frameworks, concrete artifacts. |
+| Gemini (gemini-3-pro) | Red team. Failure-mode identification, edge cases, "what breaks in production." |
+| Kimi (kimi-k2.5) | Brainstorm generator. Independent takes from different training data. |
+| Sonnet (Claude) | Stress-tester. Tests proposals against concrete cases, genuine reversals. |
+| Opus (Claude) | Reframer. Breaks deadlocks, finds unifying principles, late-stage synthesis. |
 
 ```
 follow all rules in round-robin-ask skill to explore architecture options for [your problem]
