@@ -469,7 +469,7 @@ State is externalized to prevent in-model drift. File is ground truth.
 
 - Irving, G., Christiano, P., & Amodei, D. (2018). AI safety via debate. *arXiv preprint arXiv:1805.00899*.
 
-- Khan, A., Hughes, J., Valentine, D., Ruis, L., Sachan, M., Radhakrishnan, A., Grefenstette, E., Bowman, S.R., Rocktäschel, T., & Perez, E. (2024). Debating with more persuasive LLMs leads to more truthful answers. *Proceedings of the 41st International Conference on Machine Learning (ICML)*, PMLR 235:23662-23733.
+- Khan, A., Hughes, J., Valentine, D., Ruis, L., Sachan, K., Radhakrishnan, A., Grefenstette, E., Bowman, S.R., Rocktäschel, T., & Perez, E. (2024). Debating with more persuasive LLMs leads to more truthful answers. *Proceedings of the 41st International Conference on Machine Learning (ICML)*, PMLR 235:23662-23733.
 
 - Modgil, S., & Prakken, H. (2014). The ASPIC+ framework for structured argumentation: A tutorial. *Argument & Computation*, 5(1), 31-62.
 
