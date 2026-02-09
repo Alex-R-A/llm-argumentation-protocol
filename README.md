@@ -202,7 +202,7 @@ Five invariants always hold: consultee output is never accepted without evaluati
 
 Evidence hierarchy: Execution (tests, logs) > Textual (file:line citations) > Claim (insufficient for Agreed).
 
-For the full specification, see [PROTOCOL-EXPLAINED-FOR-HUMANS.md](PROTOCOL-EXPLAINED-FOR-HUMANS.md).
+For the full specification, see [PROTOCOL-EXPLAINED-FOR-HUMANS.md](PROTOCOL-EXPLAINED-FOR-HUMANS.md). For visual flow diagrams, see [PROTOCOL-FLOW-DIAGRAMS.md](PROTOCOL-FLOW-DIAGRAMS.md).
 
 ---
 

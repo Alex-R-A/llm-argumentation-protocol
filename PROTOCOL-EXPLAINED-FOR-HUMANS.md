@@ -2,6 +2,8 @@
 
 *Reading notes and observations on a structured debate framework between language models.*
 
+See also: [PROTOCOL-FLOW-DIAGRAMS.md](PROTOCOL-FLOW-DIAGRAMS.md) for visual reference.
+
 ---
 
 ## Foundational Concepts for Non-LLM-Experts
