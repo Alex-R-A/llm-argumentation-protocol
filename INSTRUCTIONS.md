@@ -40,3 +40,17 @@ Start a new Claude Code session and invoke the skill with prompts like:
 - "follow all rules in kimi-ask skill to have kimi propose an error handling strategy for Z and defend it"
 
 The skill facilitates structured deliberation between Claude and the external LLM, with results categorized as agreed, dismissed, or unresolved.
+
+## Round-Robin
+
+`round-robin-ask` consults multiple LLMs serially rather than one-on-one. Install the skill alongside whichever consultees you have:
+
+```bash
+cp -r llm-argumentation-protocol/round-robin-ask ~/.claude/skills/
+```
+
+It uses all available models (Codex, Gemini, Kimi, Sonnet, Opus) but works with any subset. If some are unavailable, say which to skip:
+
+```
+follow all rules in round-robin-ask skill, skip Kimi and Codex, to explore architecture options for [your problem]
+```
