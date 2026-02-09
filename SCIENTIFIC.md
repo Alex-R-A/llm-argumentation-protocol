@@ -204,7 +204,7 @@ Stage 0 is a pre-gate. Stages 2-6 repeat until termination. Format failures do n
 | **AGREE** | Claim accepted | → Agreed bucket |
 | **SKEPTICAL** | Flaw identified, defense possible | Issue challenge, standard window |
 | **REJECT** | Claim wrong, one chance to rebut | Issue challenge, single round |
-| **ILL-FORMED** | Unevaluable (ambiguous, not a claim) | Request clarification; if unresolved after retry → Dismissed (tag: DIALECTICAL-STALL) |
+| **ILL-FORMED** | Unevaluable (ambiguous, not a claim) | Request clarification; if unresolved after retry → Dismissed (tag: DIALECTICAL-STALL: unevaluable after clarification) |
 
 ### Acceptance Semantics
 
@@ -342,7 +342,7 @@ Before presenting output, invoke secondary verification:
 
 **Prompt:** Question + ledger + buckets. Agent names are omitted (no attribution), but bucket contents including point/reason pairs and challenge/defense exchanges are included for evaluation. "Are agreed points well-supported? Dismissals justified? Unresolved genuinely blocked?"
 
-Flags reduce confidence only. ≥50% flagged → present with warning or re-examine.
+Flags reduce confidence only. ≥60% of evaluated points flagged → exit with insufficient-confidence warning. <60% flagged → present unflagged points normally, append arbitration concerns.
 
 ## Termination Conditions
 
@@ -368,22 +368,24 @@ Deliberation stalls fall into two categories with distinct causes and remedies:
 
 ### Failure Classes
 
-The protocol recognizes six compliance failure modes, ordered by severity:
+The protocol recognizes eight failure modes. Classes 1-3 are structural (the response itself is broken; neither format nor quality failures increment n). Classes 4-8 are dialogical (the response is parseable but the exchange has stalled on individual points).
 
-| Class | Detection | Remedy | Escalation |
-|-------|-----------|--------|------------|
-| **Format failure** | Response cannot be parsed into discrete points with classifications | Retry (do not increment n) | 2nd consecutive format failure → Early exit |
-| **Quality failure** | Structured response but ignores disputed points or is off-topic | One targeted critique specifying what was missed | Still unusable → Early exit |
-| **Challenge tracking failure** | Consultee drops challenge IDs, cannot reference prior points | 1 ID-recovery attempt per challenge | 2+ recovery failures in session → Exit: "protocol integrity failure" |
-| **Scope instability** | 2nd correction attempt during partial defense | — | Dismissed (tag: DIALECTICAL-STALL: scope unstable) |
-| **Definitional failure** | Terms remain unclear after 1 clarification retry | — | Dismissed (tag: DIALECTICAL-STALL: terms unclear) |
-| **Unevaluable claim** | ILL-FORMED classification persists after clarification round | — | Dismissed (tag: DIALECTICAL-STALL: unevaluable after clarification) |
+| # | Class | Detection | Remedy | Escalation |
+|---|-------|-----------|--------|------------|
+| 1 | **Format failure** | Response cannot be parsed into discrete points with classifications, or lacks evidence tags on verification claims | Retry (do not increment n) | 2nd consecutive format failure → Early exit (quality) |
+| 2 | **Quality failure** | Structured response but ignores disputed points or is off-topic | One quality-focused critique (do not increment n) | Still unusable → Early exit (quality) |
+| 3 | **Challenge tracking failure** | Consultee drops challenge IDs, cannot reference prior points | 1 ID-recovery attempt per challenge | 2+ distinct challenges in same session require ID recovery → Exit: "Protocol integrity failure: consultee unable to maintain challenge tracking" |
+| 4 | **Scope instability** | 2nd correction attempt during partial defense (see Partial Defense Protocol) | — | Dismissed (tag: DIALECTICAL-STALL: scope unstable) |
+| 5 | **Definitional failure** | Terms remain unclear after 1 clarification retry | — | Dismissed (tag: DIALECTICAL-STALL: terms unclear) |
+| 6 | **Unevaluable claim** | ILL-FORMED classification persists after clarification round (see Classification Semantics) | — | Dismissed (tag: DIALECTICAL-STALL: unevaluable after clarification) |
+| 7 | **Anchor instability** | Consultee shifts the primary question rather than answering it | Reframe-only points held as Unresolved (status: pending-anchor-shift) until user consent | 2+ anchor shifts in same session → Exit: "Question may need narrowing or decomposition" |
+| 8 | **Grounding failure** | Both parties argue at claim level (no evidence cited) for 2+ rounds | Re-prompt: "What prompt would invoke evidence?" | Still ungrounded → surface gap to user as Unresolved |
 
-Classes 1-3 are structural (the response itself is broken). Classes 4-6 are dialogical (the response is parseable but the exchange has stalled). Structural failures affect the entire response; dialogical failures affect individual points.
+Structural failures (1-2) are tracked via `last_failure_type`; the consecutive-failure counter is per-class (a format failure followed by a quality failure resets the format counter). Challenge tracking failure (3) counts distinct challenges requiring recovery, not total recovery attempts.
 
 ### Detection Heuristics
 
-Degraded consultee context manifests as: response ignores recent challenges, asks about information already established, or contradicts prior positions without acknowledgment. These heuristics indicate the agent has lost track of deliberation state, distinct from deliberate position revision (which requires explicit `revision` tag).
+Degraded consultee context manifests as: response ignores recent challenges, asks about information already established, or contradicts prior positions without acknowledgment. These heuristics indicate the agent has lost track of deliberation state, distinct from deliberate position revision (which requires explicit `revision` tag). Additional heuristics for genuine disagreement detection: argument repetition without new information suggests definitional mismatch; evidence asymmetry (one party cites, the other does not) should be resolved by validating the citation before weighting.
 
 ### Session-Level Escalation
 
@@ -391,10 +393,15 @@ Individual DIALECTICAL-STALL tags dismiss single points. When stalls accumulate,
 
 ```
 Point-level:  1 remediation attempt → Dismissed (tag: DIALECTICAL-STALL: [symptom])
-Session-level: 2+ points tagged DIALECTICAL-STALL in same session → Full exit
+Session-level: 2+ points tagged DIALECTICAL-STALL:* in same session → Full exit
+               (any combination of symptom types counts; the prefix is the trigger)
 ```
 
-Full exit terminates deliberation and surfaces remediation guidance: narrow scope, add concrete examples, specify constraints, clarify trade-off priorities, or decompose into sub-questions. The protocol does not retry at session level; structural non-compliance is unlikely to resolve through repetition.
+Full exit terminates deliberation and surfaces remediation guidance: narrow scope, add concrete examples, specify constraints or non-goals, state what a good answer looks like, clarify which trade-offs matter, or break into smaller sub-questions. The protocol does not retry at session level; structural non-compliance is unlikely to resolve through repetition.
+
+### Inconclusive Exit
+
+If at Synthesize all evaluated points are Unresolved (Agreed and Dismissed both empty), the protocol does not present the result as successful deliberation. Each Unresolved point surfaces its specific blocker (missing data, definitional ambiguity, or criteria divergence) with actionable remediation. The user decides whether to continue with a new session or accept inconclusiveness.
 
 **Design rationale.** The escalation ladder is deliberately aggressive. Prolonged engagement with a non-compliant consultee wastes iteration budget and produces unreliable classifications. Early exit with explicit failure reporting preserves the user's ability to retry with adjusted framing, rather than consuming all 8 iterations on degraded output that appears substantive but ignores the actual dispute.
 
