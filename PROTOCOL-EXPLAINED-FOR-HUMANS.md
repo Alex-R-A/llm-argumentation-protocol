@@ -181,6 +181,8 @@ Before transitioning from CONSTRUCTIVE to DEVELOPMENT, explicitly ask: "Are ther
 
 **Why here?** Once you enter DEVELOPMENT, new arguments are blocked. The coverage check is a last call before that gate closes.
 
+**What counts as "new":** The coverage check asks the Responding LLM if anything is missing. But the protocol is strict about what qualifies as a reason to extend. Restating earlier points in different words doesn't count. Citing evidence that was already available in previous iterations doesn't count. To earn an extra round, the response must reference something not previously mentioned in this deliberation, and that something must actually challenge an existing conclusion or reveal a gap that changes the picture. Generic additions like "you might also consider..." don't qualify. This prevents the coverage check from becoming a free extra round where the Responding LLM rehashes old arguments with fresh phrasing.
+
 **Stress Test (when unanimous too early):**
 If all points are AGREED by end of iteration 2, and the question is high-stakes or high-uncertainty, request a steelman objection: "What's the strongest argument against this conclusion? Classify it as fatal, unresolved, or mitigable."
 
@@ -190,6 +192,11 @@ If all points are AGREED by end of iteration 2, and the question is high-stakes 
 Triggered by: 2+ unresolved points, early unanimous agreement lacking evidence, high-stakes questions, or user request. Prompt: "Are agreed points well-supported? Dismissals justified? Unresolved genuinely blocked?"
 
 Flags reduce confidence only—they don't override verdicts. If ≥50% of points get flagged, present with warning or re-examine.
+
+**Exit Validation (before presenting results):**
+Before the Orchestrating LLM shows any output to the user, it must answer one question: "Can I point to the exact rule in this skill that says I'm allowed to stop right now?" If yes, cite it and proceed. If no, go back to the appropriate step instead of presenting incomplete results.
+
+**Why this exists:** LLMs have a tendency to wrap things up. They produce tidy conclusions because training rewards complete-looking answers. Without an explicit gate, the Orchestrating LLM might present results before all challenges are resolved, or skip straight to output when it should still be iterating. The exit validation forces it to justify stopping, not just feel like it's done.
 
 ---
 
