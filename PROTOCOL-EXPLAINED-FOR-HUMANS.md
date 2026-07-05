@@ -81,7 +81,7 @@ The deliberation proceeds through time-boxed phases:
 |-------|------------|----------------|
 | CONSTRUCTIVE | 1-2 | New arguments, positions, scenarios |
 | DEVELOPMENT | 3-5 | Defenses, rebuttals, extensions of existing points only |
-| CRYSTALLIZATION | 6-8 | Final verdicts, defenses to open challenges, no new arguments |
+| CRYSTALLIZATION | 6-8 | Final verdicts; every challenge is already disposed at entry (a conditional FLUSH iteration drains stragglers first), so only decisive evidence and no new arguments |
 
 **Why phase gates?** This prevents endless scope expansion. Without them, the Responding LLM could keep introducing new considerations indefinitely. The phase structure forces convergence: you get two rounds to put everything on the table, then you're arguing about what's already there.
 
@@ -113,7 +113,7 @@ Not every question deserves 8 iterations of structured debate. The protocol scal
 
 **Minimal Mode (8 iterations):**
 - For low-stakes, small scope (≤5 points)
-- Disables: arbitration, stress test
+- Disables: arbitration, stress test, coverage check
 - Keeps: phase rules, challenge tracking, ledger, bias checks
 
 **Full Mode (8 iterations):**
@@ -197,7 +197,7 @@ If all points are AGREED by end of iteration 2, and the question is high-stakes 
 **Arbitration (optional, before output):**
 Triggered by: 2+ unresolved points, early unanimous agreement lacking evidence, high-stakes questions, or user request. Prompt: "Are agreed points well-supported? Dismissals justified? Unresolved genuinely blocked?"
 
-Flags reduce confidence only—they don't override verdicts. If ≥50% of points get flagged, present with warning or re-examine.
+Flags reduce confidence only—they don't override verdicts. If ≥60% of evaluated points get flagged, the deliberation exits ("insufficient confident reasoning"); below that, unflagged points present normally with an ARBITRATION CONCERNS section listing the flagged ones.
 
 **Exit Validation (before presenting results):**
 Before the Orchestrating LLM shows any output to the user, it must answer one question: "Can I point to the exact rule in this skill that says I'm allowed to stop right now?" If yes, cite it and proceed. If no, go back to the appropriate step instead of presenting incomplete results.
@@ -242,7 +242,7 @@ When the Orchestrating LLM disagrees with a point, it issues a challenge. Two fl
 
 **The dropped-challenge problem:** The protocol explicitly notes that "LLM silence ≠ concession." The Responding LLM might fail to address a challenge due to attention failure (context window limitations, got distracted by other points) rather than because it concedes. The reminder mechanism accounts for this. It's a charitable interpretation baked into the rules.
 
-**Partial defenses:** Sometimes the Responding LLM half-agrees. It concedes part of a claim while defending the rest. The protocol splits the claim in two: the conceded part gets dismissed, the defended part gets re-evaluated at its narrowed scope. The Orchestrating LLM restates what the narrowed claim now is and asks the Responding LLM to confirm. One correction is allowed if the restatement was off. A second correction means the claim's scope is unstable, and it gets dismissed.
+**Partial defenses:** Sometimes the Responding LLM half-agrees. It concedes part of a claim while defending the rest. The protocol splits the claim in two: the conceded part gets dismissed, the defended part gets re-evaluated at its narrowed scope. The Orchestrating LLM restates what the narrowed claim now is and asks the Responding LLM to confirm. One correction is allowed if the restatement was off. A second correction means the claim's scope is unstable, and it routes to Unresolved as dialectically stalled (no verdict was reached on the claim itself, so it is not Dismissed).
 
 **Why this matters:** Without splitting, every challenge becomes all-or-nothing. A partially valid point gets thrown out entirely because part of it was wrong. Splitting preserves the good parts while discarding the bad, which produces more accurate results.
 
@@ -356,7 +356,7 @@ The protocol anticipates several failure modes:
 
 **Inconclusive exit:** If everything ends up UNRESOLVED, don't present it as successful deliberation. Explicitly flag it and surface blockers.
 
-**Dialectical stall:** Sometimes the deliberation doesn't fail on content but on process. The Responding LLM keeps producing claims that can't be evaluated as stated, or keeps shifting the scope of what it's defending, or can't agree on what the terms mean even after clarification. The protocol calls this a "dialectical stall," meaning the back-and-forth itself has broken down. One recovery attempt is allowed per type of breakdown. If it's still stuck, that point gets dismissed. If two or more points stall in the same session, the whole deliberation exits with guidance on how to retry with a narrower or clearer question.
+**Dialectical stall:** Sometimes the deliberation doesn't fail on content but on process. The Responding LLM keeps producing claims that can't be evaluated as stated, or keeps shifting the scope of what it's defending, or can't agree on what the terms mean even after clarification. The protocol calls this a "dialectical stall," meaning the back-and-forth itself has broken down. One recovery attempt is allowed per type of breakdown. If it's still stuck, that point routes to Unresolved as dialectically stalled. If two or more points stall in the same session, the whole deliberation exits with guidance on how to retry with a narrower or clearer question.
 
 **Why this exists:** Without a stall detector, a broken deliberation can burn through all 8 iterations producing nothing useful. The protocol cuts its losses early: if the process can't function, stop spending iterations and tell the user what went wrong so they can try differently.
 
